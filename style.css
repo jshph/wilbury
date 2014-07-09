@@ -1,0 +1,22 @@
+div {
+    display: inline-block;
+}
+
+#player {
+    height: 50px;
+    width:600px;
+    background-color: gray;
+}
+
+#progress {
+    height: 100%;
+    width: 0%;
+    background-color: orange;
+}
+
+#stop, #play {
+    height: 50px;
+    width:50px;
+    margin-left: 20px;
+    background-color: black;
+}
