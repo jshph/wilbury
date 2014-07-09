@@ -115,10 +115,8 @@ function init() {
     }
 
     function play(offset) {
-        var fromMiddle; // whether the user clicked somewhere in the middle of the track to initiate play.
         if (typeof(offset) === 'undefined') offset = start_offset;
-        else
-            fromMiddle = true;
+        else start_offset = offset;
 
         playing = true;
 
