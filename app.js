@@ -87,10 +87,8 @@ var context;
 var bufferLoader;
 var source;
 var buffer;
-var last_start = 0;
-var start_offset = 0;
-
-var soundProgress = start_offset;
+var last_start = 0; // from beginning of sound
+var start_offset = 0; // from beginning of sound
 
 var divWidth = 600;
 
@@ -116,20 +114,24 @@ function init() {
         buffer = retrieved_buffer;
     }
 
-    function play() {
-        console.log('playing');
+    function play(offset) {
+        var fromMiddle; // whether the user clicked somewhere in the middle of the track to initiate play.
+        if (typeof(offset) === 'undefined') offset = start_offset;
+        else
+            fromMiddle = true;
+
         playing = true;
 
         last_start = context.currentTime;
         source = context.createBufferSource();
         source.buffer = buffer; //remind from snapshot, or redundant from init.
         source.connect(context.destination);
-        source.start(0, start_offset % buffer.duration);
-        refreshWidth();
+        source.start(0, offset % buffer.duration);
+
+        refreshWidth(offset);
     }
 
     function pause() {
-        console.log('stopped');
         playing = false;
         buffer = source.buffer; //snapshot
 
@@ -137,42 +139,35 @@ function init() {
         start_offset += context.currentTime - last_start;
     }
 
-    function refreshWidth() {
+    function refreshWidth(offset) { //offset is wrap of start_offset
         if (playing) {
-            soundProgress = context.currentTime - last_start + start_offset;
+            if (typeof(offset) === 'undefined') offset = start_offset; // if resuming from straight pause-play
+
+            soundProgress = context.currentTime - last_start + offset;
             soundPercent = (soundProgress / buffer.duration) * 100;
             //for animation
-            $('#progress').width(soundPercent + "%");
-            window.requestAnimationFrame(refreshWidth);
+            $('.progress').width(soundPercent + "%");
+            
+            //and refresh number text
+            $('.textProgress').html(soundProgress.toFixed(2) + " / " + buffer.duration.toFixed() + " secs.");
+            window.requestAnimationFrame(function() {
+                refreshWidth(offset);
+            });
         }
     }
 
-    $('#play').click(function() {
-        play();
+    $('#play_toggle').click(function() {
+        if (!playing) play();
+        else pause();
     });
 
-    $('#stop').click(function() {
-        pause();
-    })
-
-    /*$('#player').click(function(e) {
+    $('.player').click(function(e) {
         //x position relative to the top-left of element clicked.
         var newXpos = (e.clientX - $(this).offset().left);
         //percentage of progres
         var percentProgress = newXpos / divWidth;
 
-        var stoppedTime = context.currentTime;
-        source.stop();
-        playing = false;
-
-        //refreshed start, offsetted
-        source = context.createBufferSource();
-        source.buffer = bufferList[0];
-        source.connect(context.destination);
-
-        playing = true;
-        source.start(0, stoppedTime * percentProgress);
-
-        refreshWidth(stoppedTime);
-    });*/
+        pause();
+        play(percentProgress * buffer.duration);
+    });
 }

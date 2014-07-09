@@ -1,22 +1,52 @@
+body {
+    text-align: center;
+    /*background-color: gray;*/
+}
+
 div {
     display: inline-block;
 }
 
-#player {
-    height: 50px;
-    width:600px;
-    background-color: gray;
+.header {
+    display: block;
+    margin-top: 50px;
 }
 
-#progress {
+.header > p {
+    font-family: Helvetica;
+    color: black;
+}
+
+.soundContainer {
+    margin-top: 65px;
+    text-align: left;
+}
+
+.textProgress {
+    color: black;
+    font-size:12px;
+    margin: 8px;
+    font-family: Helvetica;
+    display: block;
+    height:12px;
+}
+
+.player {
+    height: 50px;
+    width:600px;
+    background-color: rgb(221, 221, 221);
+    border-bottom: rgb(206, 167, 167) 5px solid;    
+}
+
+.progress {
     height: 100%;
     width: 0%;
     background-color: orange;
 }
 
-#stop, #play {
+#play_toggle {
     height: 50px;
     width:50px;
     margin-left: 20px;
-    background-color: black;
+    background-color: rgb(255, 170, 144);
 }
