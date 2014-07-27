@@ -271,9 +271,9 @@ function init() {
     bufferloader = new BufferLoader(
         context,
         [
-            {"url": "Hard To Smile.mp3", "offset": 1},
-            {"url": "Misterwives - Reflections (Flaxo Remix).mp3", "offset": 100},
-            {"url": "YesYou ft. Marcus Azon - Frivolous Life (Vlad Lucan Remix}.mp3", "offset": 272}
+            {"url": "../sample_songs/Hard To Smile.mp3", "offset": 1},
+            {"url": "../sample_songs/Misterwives - Reflections (Flaxo Remix).mp3", "offset": 100},
+            {"url": "../sample_songs/YesYou ft. Marcus Azon - Frivolous Life (Vlad Lucan Remix}.mp3", "offset": 272}
         ],
         finishedLoading
         );

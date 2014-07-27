@@ -1,0 +1,58 @@
+body {
+    text-align: center;
+    /*background-color: gray;*/
+}
+
+div {
+    display: inline-block;
+}
+
+.header {
+    display: block;
+    margin-top: 50px;
+}
+
+.header > p {
+    font-family: Helvetica;
+    color: black;
+}
+
+.soundContainer {
+    margin-top: 65px;
+    position: relative;
+    text-align: center;
+    /*width:100%;*/
+}
+
+.textProgress {
+    color: black;
+    font-size:12px;
+    margin: 8px;
+    font-family: Helvetica;
+    display: block;
+    height:12px;
+}
+
+.player {
+    height: 50px;
+    width:600px;
+    background-color: rgb(221, 221, 221);
+    border-bottom: rgb(206, 167, 167) 5px solid;
+    display: block;
+    /*position: absolute;*/
+    text-align: left;
+}
+
+.progress {
+    height: 100%;
+    width: 0%;
+    background-color: orange;
+}
+
+#play_toggle {
+    height: 50px;
+    width:50px;
+    margin-left: 20px;
+    background-color: rgb(255, 170, 144);
+    vertical-align: bottom;
+}
