@@ -19,7 +19,9 @@ div {
 
 .soundContainer {
     margin-top: 65px;
+    position: relative;
     text-align: left;
+    width:100%;
 }
 
 .textProgress {
@@ -35,7 +37,10 @@ div {
     height: 50px;
     width:600px;
     background-color: rgb(221, 221, 221);
-    border-bottom: rgb(206, 167, 167) 5px solid;    
+    border-bottom: rgb(206, 167, 167) 5px solid;
+    display: block;
+    position: absolute;
+    text-align: left;
 }
 
 .progress {
@@ -49,4 +54,5 @@ div {
     width:50px;
     margin-left: 20px;
     background-color: rgb(255, 170, 144);
+    vertical-align: bottom;
 }
