@@ -88,6 +88,8 @@ AudioHandler.prototype.initialize = function() {
 
     this.handleClick();
 
+    this.pauseManager();
+
 }
 
 AudioHandler.prototype.play_onClick = function(offset_global) { // offset format, specified in handleClick, is necessary to handle clicks on elements that overlap: element clicked can have later start time than the element that it overlaps.
@@ -129,15 +131,32 @@ AudioHandler.prototype.play_onClick = function(offset_global) { // offset format
 AudioHandler.prototype.play_Chrono = function(i, offset_global) {
     var queuedItem_temp;
     var soundList = this.soundList;
-    while (i < soundList.length) {
+/*    while (i < soundList.length) {
         console.log(i + " will start at " + Number(soundList[i].offset + this.recent_start - this.recent_pause - offset_global));
         var play = this.play; // bad code?
         queuedItem_temp = this.clock.callbackAtTime(
             function() {
+                console.log(i);
+                console.log(soundList[i]);
                 play(soundList[i], offset_global, i);
+                i++;
             }, Number(soundList[i].offset + this.recent_start - this.recent_pause - offset_global));
-        i++;
+    }*/
+    //while (i < soundList.length) {
+    var recent_start = this.recent_start, recent_pause = this.recent_pause, play = this.play;
+    function recursivePlay(index) {
+        console.log(index + " will start at " + Number(soundList[index].offset + recent_start - recent_pause - offset_global));
+        queuedItem_temp = this.clock.callbackAtTime(
+            function() {
+                console.log(index);
+                console.log(soundList[index]);
+                play(soundList[index], offset_global, index);
+                recursivePlay(index + 1);
+            }, Number(soundList[index].offset + recent_start - recent_pause - offset_global));
     }
+    recursivePlay(i);
+    //}
+
 }
 
 /*function() {
@@ -147,11 +166,12 @@ AudioHandler.prototype.play_Chrono = function(i, offset_global) {
 
 AudioHandler.prototype.pauseManager = function() {
     // happens upon click
-    var context = this.context;
-    this.recent_pause = context.currentTime - this.recent_start; // snapshot
-
-    $(this.queuedSongs).each(function(index, source) {
-        source.stop();
+    $('#play_toggle').click(function() {
+        var context = this.context;
+        this.recent_pause = context.currentTime - this.recent_start; // snapshot
+        $(this.queuedSongs).each(function(index, source) {
+            source.stop();
+        });
     });
 
     /*$(this.queuedSongs).each(function(index, item) {
@@ -162,7 +182,7 @@ AudioHandler.prototype.pauseManager = function() {
 AudioHandler.prototype.play = function(sound, offset_global, index) {
     console.log(sound);
     var relative_offset = offset_global - this.recent_pause - sound.offset;
-    var player = this.Players[index];
+    //var player = this.Players[index];
     // call to refresh correct div, id'd by index.
     var source = this.source;
 
@@ -171,19 +191,20 @@ AudioHandler.prototype.play = function(sound, offset_global, index) {
     source.connect(this.context.destination);
 
     source.start(0, relative_offset);
+    console.log('playing!');
 
     this.queuedSongs.push(source);
 
     console.log('playing ' + sound.url + " at " + this.context.currentTime);
 
-    player.playing = true;
+    //player.playing = true;
 
-    player.render(index, relative_offset / sound.buffer.duration);
+    //player.render(index, relative_offset / sound.buffer.duration);
 
     source.onended = function() {
         console.log('finished ' + sound.url + ": " + index);
         source.stop();
-        player.playing = false;
+        //player.playing = false;
     }
 }
 
@@ -271,9 +292,9 @@ function init() {
     bufferloader = new BufferLoader(
         context,
         [
-            {"url": "../sample_songs/Hard To Smile.mp3", "offset": 1},
-            {"url": "../sample_songs/Misterwives - Reflections (Flaxo Remix).mp3", "offset": 100},
-            {"url": "../sample_songs/YesYou ft. Marcus Azon - Frivolous Life (Vlad Lucan Remix}.mp3", "offset": 272}
+            {"url": "/../sample_songs/Hard To Smile.mp3", "offset": 1},
+            {"url": "/../sample_songs/Misterwives - Reflections (Flaxo Remix).mp3", "offset": 100},
+            {"url": "/../sample_songs/YesYou ft. Marcus Azon - Frivolous Life (Vlad Lucan Remix}.mp3", "offset": 272}
         ],
         finishedLoading
         );
