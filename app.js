@@ -148,10 +148,16 @@ AudioHandler.prototype.play_Chrono = function(i, offset_global) {
         console.log(index + " will start at " + Number(soundList[index].offset + recent_start - recent_pause - offset_global));
         queuedItem_temp = this.clock.callbackAtTime(
             function() {
-                console.log(index);
-                console.log(soundList[index]);
-                play(soundList[index], offset_global, index);
-                recursivePlay(index + 1);
+                if (index < soundList.length) {
+                    console.log(index);
+                    console.log(soundList[index]);
+                    play(soundList[index], offset_global, index);
+                    recursivePlay(index + 1);
+                }
+                else
+                {
+                    console.log('finished recursivePlay');
+                }
             }, Number(soundList[index].offset + recent_start - recent_pause - offset_global));
     }
     recursivePlay(i);
@@ -193,7 +199,7 @@ AudioHandler.prototype.play = function(sound, offset_global, index) {
     source.start(0, relative_offset);
     console.log('playing!');
 
-    this.queuedSongs.push(source);
+    //this.queuedSongs.push(source);
 
     console.log('playing ' + sound.url + " at " + this.context.currentTime);
 
@@ -292,9 +298,9 @@ function init() {
     bufferloader = new BufferLoader(
         context,
         [
-            {"url": "/../sample_songs/Hard To Smile.mp3", "offset": 1},
-            {"url": "/../sample_songs/Misterwives - Reflections (Flaxo Remix).mp3", "offset": 100},
-            {"url": "/../sample_songs/YesYou ft. Marcus Azon - Frivolous Life (Vlad Lucan Remix}.mp3", "offset": 272}
+            {"url": "/../sample_songs/tsi.mp3", "offset": 0},
+            {"url": "/../sample_songs/pakabaka.mp3", "offset": 4},
+            {"url": "/../sample_songs/mmmmm.mp3", "offset": 9}
         ],
         finishedLoading
         );
@@ -311,7 +317,7 @@ function init() {
 
         audioHandler = new AudioHandler(soundList, context, clock);
         //audioHandler.initialize();
-        audioHandler.play_onClick(265);
+        audioHandler.play_onClick(0);
         // then sort the bufferList based on start offset times.
         //call AudioManager to construct
     }
