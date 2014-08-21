@@ -90,7 +90,7 @@ AudioHandler.prototype.initialize = function() {
         // this redundancy may be useful for Player rendering specificity.
     }
 
-    //this.handleClick();
+    this.handleClick();
 }
 
 AudioHandler.prototype.play_onClick = function(offset_global) { // offset format, specified in handleClick, is necessary to handle clicks on elements that overlap: element clicked can have later start time than the element that it overlaps.
@@ -101,10 +101,10 @@ AudioHandler.prototype.play_onClick = function(offset_global) { // offset format
     var i; // first valid sound's index
 
     for (i = 0; i < soundList.length; i++) {
-        console.log("touched over " + i);
+        //console.log("touched over " + i);
         if (soundList[i].offset + soundList[i].buffer.duration >= this.offset_global) break;
     } // aka first valid. start from here, but don't do anything yet.
-    console.log("valid sound found " + soundList[i].url + " with offset " + soundList[i].offset);
+    // console.log("valid sound found " + soundList[i].url + " with offset " + soundList[i].offset);
 
     this.playing = true;
     // start by playing the first valid (first conditional passes for sure)
@@ -120,21 +120,13 @@ AudioHandler.prototype.play_onClick = function(offset_global) { // offset format
             break;
         }
     }
-    //for (i; i < soundList.length; i++) {
-
-   /* while (buffer_index < bufferList.length) {
-        this.play(bufferList[buffer_index], buffer_index, offset_percentage);
-    }*/
-    
 }
 
 AudioHandler.prototype.play_Chrono = function(i) {
     var self = this;
     var queued_event;
-    // var recent_start = this.recent_start, recent_pause = this.recent_pause, play = this.play, soundList = this.soundList;
 
     function recursivePlay(index) {
-        //console.log('queueing ' + self.soundList[index].url + ' for play in ' + Number(self.soundList[index].offset - self.offset_global));
         queued_event = this.clock.callbackAtTime(
             function() {
                 if (self.playing && index < self.soundList.length) {
@@ -149,37 +141,6 @@ AudioHandler.prototype.play_Chrono = function(i) {
     }
 
     recursivePlay(i);
-}
-
-/*function() {
-            console.log('starting.');
-            this.play(soundList[i], this.recent_pause + offset_global - this.recent_start offset_global, i); // later implement recent_pause
-        }*/
-
-AudioHandler.prototype.pauseManager = function() {
-    // happens upon click
-    var self = this;
-    var context = this.context;
-    /*$('#play_toggle').click(function() {
-        if (self.playing) {*/
-            self.recent_pause = context.currentTime - self.recent_start + self.offset_global;
-            self.playing = false;
-            $(self.playingSounds).each(function(index, sound) {
-                sound.source.stop();
-                sound.player.playing = false;
-            });
-            self.playingSounds = [];
-
-            $(self.WAAQueue).each(function(index, WAA_event) {
-                WAA_event.clear();
-            });
-            //console.log("paused at " + self.recent_pause);
-        /*}
-        else {
-            self.play_onClick(self.offset_global + self.recent_pause - self.recent_start);
-            // after this call, self.offset_global will be changed.
-        }
-    });*/
 }
 
 AudioHandler.prototype.play = function(sound, self) { // CAN I FREAKING GET RID OF THE SELF??? INHERITANCE FREAKING PROBLEMS WOW
@@ -220,9 +181,30 @@ AudioHandler.prototype.play = function(sound, self) { // CAN I FREAKING GET RID 
     }
 }
 
+AudioHandler.prototype.pauseManager = function() {
+    // happens upon click
+    var self = this;
+    var context = this.context;
+
+    self.recent_pause = context.currentTime - self.recent_start + self.offset_global;
+    self.playing = false;
+    $(self.playingSounds).each(function(index, sound) {
+        sound.source.stop();
+        sound.player.playing = false;
+    });
+    self.playingSounds = [];
+
+    $(self.WAAQueue).each(function(index, WAA_event) {
+        WAA_event.clear();
+    });
+}
+
 AudioHandler.prototype.handleClick = function() {
-    var pauseManager = this.pauseManager;
-    $('#play_toggle').click(pauseManager);
+    var self = this;
+    $('#play_toggle').click(function() {
+        if (self.playing) self.pauseManager();
+        else self.play_onClick(self.recent_pause);
+    });
 }
 
 function Player(sound, totalDuration, index, context) {
@@ -342,13 +324,5 @@ function init() {
         });
 
         audioHandler = new AudioHandler(soundList, context, clock);
-        //audioHandler.initialize();
-        $('#play_toggle').click(function() {
-            if (audioHandler.playing) audioHandler.pauseManager();
-            else audioHandler.play_onClick(audioHandler.recent_pause);
-        });
-        //audioHandler.play_onClick(1);
-        // then sort the bufferList based on start offset times.
-        //call AudioManager to construct
     }
 }
