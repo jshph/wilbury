@@ -21,7 +21,7 @@ div {
     margin-top: 65px;
     position: relative;
     text-align: left;
-    width:100%;gle
+    width:100%;
 }
 
 .textProgress {
@@ -43,10 +43,18 @@ div {
     text-align: left;
 }
 
+/*.player:hover {
+    background-color: rgb(200, 200, 200);
+}*/
+
 .progress {
     height: 100%;
     width: 0%;
     background-color: orange;
+}
+
+.progress:hover {
+    background-color: rgb(255, 126, 0);
 }
 
 #play_toggle {

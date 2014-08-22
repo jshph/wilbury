@@ -102,6 +102,7 @@ AudioHandler.prototype.play_onClick = function(offset_global) { // offset format
 
     for (i = 0; i < soundList.length; i++) {
         //console.log("touched over " + i);
+        this.Players[i].render("ALL", soundList[i], this);
         if (soundList[i].offset + soundList[i].buffer.duration >= this.offset_global) break;
     } // aka first valid. start from here, but don't do anything yet.
     // console.log("valid sound found " + soundList[i].url + " with offset " + soundList[i].offset);
@@ -130,7 +131,6 @@ AudioHandler.prototype.play_Chrono = function(i) {
         queued_event = this.clock.callbackAtTime(
             function() {
                 if (self.playing && index < self.soundList.length) {
-                    console.log('played ' + self.soundList[index].url + " through recursivePlay");
                     self.play(self.soundList[index], self);
                     recursivePlay(++index);
                     return index;
@@ -164,7 +164,7 @@ AudioHandler.prototype.play = function(sound, self) { // CAN I FREAKING GET RID 
 
     source.start(0, playhead);
     player.playing = true;
-    console.log("playing " + sound.index + ": " + sound.url + " from " + playhead + " / " + sound.buffer.duration);
+    // console.log("playing " + sound.index + ": " + sound.url + " from " + playhead + " / " + sound.buffer.duration);
 
     self.playingSounds.push(sound);
 
@@ -179,6 +179,7 @@ AudioHandler.prototype.play = function(sound, self) { // CAN I FREAKING GET RID 
         source.stop();
         player.playing = false;
     }
+
 }
 
 AudioHandler.prototype.pauseManager = function() {
@@ -201,9 +202,25 @@ AudioHandler.prototype.pauseManager = function() {
 
 AudioHandler.prototype.handleClick = function() {
     var self = this;
+    // control from toggle button.
     $('#play_toggle').click(function() {
         if (self.playing) self.pauseManager();
         else self.play_onClick(self.recent_pause);
+    });
+
+    // control from middle of player.
+    $(self.Players).each(function(index, player) {
+        var sound = player.sound;
+        $(player.player).click(function(e) {
+            var newXpos = (e.clientX - $(this).offset().left);
+            var new_offset_global = (newXpos / $(this).width()) * sound.buffer.duration + sound.offset;
+
+            self.pauseManager();
+            $(self.Players).each(function(index, player) {
+                $(player.progress).width(0);
+            });
+            window.setTimeout(function(){self.play_onClick(new_offset_global);}, 50);
+        });
     });
 }
 
@@ -260,11 +277,12 @@ Player.prototype.initialize = function() {
 
     this.player = player;
     this.progress = progress;
+    this.textProgress = textProgress;
 }
 
 Player.prototype.render = function(relative_offset, sound, self) {
     var player_self = this;
-    console.log("playhead at " + relative_offset);
+    // console.log("playhead at " + relative_offset);
 //console.log(offset_percentage);
     var soundProgress = relative_offset;
     var time_startRender = this.context.currentTime;
@@ -273,22 +291,31 @@ Player.prototype.render = function(relative_offset, sound, self) {
         if (player_self.playing) {
             var soundProgress = this.context.currentTime - time_startRender + relative_offset;
             var soundPercent = (soundProgress / sound.buffer.duration) * 100;
-            $(player_self.player).children($('.progress')).width(soundPercent + "%");
+            
+            $(player_self.progress).width(soundPercent + "%");
 
             //and refresh number text
-            $(player_self.player).children($('.textProgress')).html(soundProgress.toFixed(2) + " / " + sound.buffer.duration.toFixed() + " secs.");
+            //$(player_self.player).children($('.textProgress')).html(soundProgress.toFixed(2) + " / " + sound.buffer.duration.toFixed() + " secs.");
 
             window.requestAnimationFrame(function() {
                 _render();
             });
         }
-        //else console.log('stopped rendering');
+        else {
+            console.log("cannot render");
+            return;
+        }
     }
-    _render();
+
+    if (relative_offset === "ALL")
+        $(player_self.progress).width("100%");
+    else
+        _render();
 }
 
 Player.prototype.handleClick = function() {
-
+    // this is one area that could use "apply" to access parent's play_onClick directly.
+    
 } // or should it be relative to global duration? 
 // offset that goes into playmanager should be: (ratio of position of buffer that's clicked) * (buffer duration) + (buffer's offset from global start)
 
