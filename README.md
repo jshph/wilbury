@@ -1,7 +1,6 @@
 wilbury
 =======
-Project currently in development. So, what works?
-- The page loads. The audio loads, then autoplays from a hardcoded starting point. All audio files are laid out as they are to be played relative to each other. Audio starts/overlays/ends accurately.
+Project currently in development. Currently, the player, which manages playback of multiple audio files scattered throughout the timeline, works without a hitch. There is still some polishing that has to be done on the front-end and feedback side.
 
 Current features:
 - Web Audio API provides precise timing to play sounds. Made custom player by animating HTML elements, allowing for flexibility in positioning the sounds graphically.
