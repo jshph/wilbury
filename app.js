@@ -218,6 +218,7 @@ AudioHandler.prototype.handleClick = function() {
             self.pauseManager();
             $(self.Players).each(function(index, player) {
                 $(player.progress).width(0);
+                //$(player.textProgress).html("");
             });
             window.setTimeout(function(){self.play_onClick(new_offset_global);}, 50);
         });
@@ -250,7 +251,7 @@ Player.prototype.initialize = function() {
 
     var textProgress = document.createElement('div');
     $(textProgress).addClass('textProgress')
-                .html("offset: " + sound.offset + " duration: " + sound.buffer.duration);
+                .html("");
 
     var progress = document.createElement('div');
     $(progress).addClass('progress');
@@ -302,7 +303,6 @@ Player.prototype.render = function(relative_offset, sound, self) {
             });
         }
         else {
-            console.log("cannot render");
             return;
         }
     }
