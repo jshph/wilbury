@@ -237,7 +237,7 @@ function Player(sound, totalDuration, index, context) {
     this.player, this.progress;
 
     this.initialize();
-
+    this.movePlayhead();
     //construct div elements here.
 }
 
@@ -271,10 +271,18 @@ Player.prototype.initialize = function() {
 
     topOffset += 65;
 
-
     $(player).appendTo($('.soundContainer'));
 
     // have yet to tidy up centering of all sound elements (after each add, adjust margins)
+
+    this.overPlayer = document.createElement('div');
+    $(this.overPlayer).addClass('overPlayer');
+    $(player).append(this.overPlayer);
+
+    // initialize playhead
+    this.playhead = document.createElement('div');
+    $(this.playhead).addClass('playhead');
+    $(player).append(this.playhead);
 
     this.player = player;
     this.progress = progress;
@@ -319,6 +327,13 @@ Player.prototype.handleClick = function() {
 } // or should it be relative to global duration? 
 // offset that goes into playmanager should be: (ratio of position of buffer that's clicked) * (buffer duration) + (buffer's offset from global start)
 
+Player.prototype.movePlayhead = function() {
+    var playhead = this.playhead;
+    
+    $(this.overPlayer).mousemove(function(event) {
+        $(playhead).css({'left':event.offsetX});
+    });
+}
 
 window.onload = init;
 
