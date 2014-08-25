@@ -321,12 +321,6 @@ Player.prototype.render = function(relative_offset, sound, self) {
         _render();
 }
 
-Player.prototype.handleClick = function() {
-    // this is one area that could use "apply" to access parent's play_onClick directly.
-    
-} // or should it be relative to global duration? 
-// offset that goes into playmanager should be: (ratio of position of buffer that's clicked) * (buffer duration) + (buffer's offset from global start)
-
 Player.prototype.movePlayhead = function() {
     var playhead = this.playhead;
     
