@@ -1,7 +1,7 @@
 ##wilbury##
 Project currently in development. Currently, the player, which manages playback of multiple audio files scattered throughout the timeline, works without a hitch.
 
-![](//Screen Shot 2014-08-26 at 8.59.58 PM (2))
+![](//Screen%20Shot%202014-08-26%20at%208.59.58%20PM%20(2).png))
 ###Current features:###
 - Clicking on a spot in any one track will play all tracks that intersect with that time.
 - Play/pause button is also functional.
