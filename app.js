@@ -100,15 +100,13 @@ AudioHandler.prototype.play_onClick = function(offset_global) { // offset format
         soundList[i].player.render("ALL");
         if (soundList[i].offset + soundList[i].buffer.duration >= this.offset_global) break;
     } // aka first valid. start from here, but don't do anything yet.
-    // console.log("valid sound found " + soundList[i].url + " with offset " + soundList[i].offset);
 
     this.playing = true;
     // start by playing the first valid (first conditional passes for sure)
-    // again -recent_start not necessary, similarly.
     for (i; i < soundList.length && this.playing; i++) {
         if (soundList[i].offset <= this.offset_global && soundList[i].buffer.duration + soundList[i].offset >= this.offset_global) {
             //console.log("playing " + i + ": " + soundList[i].url + " lies between " + soundList[i].offset + " and " + Number(soundList[i].buffer.duration + soundList[i].offset));
-            this.play(soundList[i], this);
+            soundList[i].play();
         }
         else {
             //console.log(soundList[i].url + " is the first to start after the clicked position. waiting to play it.")
@@ -120,58 +118,19 @@ AudioHandler.prototype.play_onClick = function(offset_global) { // offset format
 
 AudioHandler.prototype.play_Chrono = function(i) {
     var queued_event;
-
+    var self = this; // again, not proper. unless i discover proper way to deal with anonymous func and context
     function recursivePlay(index) {
-        queued_event = this.clock.callbackAtTime(
-            function() {
-                if (this.playing && index < this.soundList.length) {
-                    this.play(this.soundList[index], this);
+        queued_event = this.clock.callbackAtTime(function() {
+                if (self.playing && index < self.soundList.length) {
+                    self.soundList[index].play();
                     recursivePlay(++index);
                     return index;
                 }
-                //else??
-            }, Number(this.recent_start + this.soundList[index].offset - this.offset_global));
-        this.WAAQueue.push(queued_event);
+            }, Number(self.recent_start + self.soundList[index].offset - self.offset_global));
+        self.WAAQueue.push(queued_event);
     }
 
-    recursivePlay.call(this, i);
-}
-
-AudioHandler.prototype.play = function(sound, self) { // CAN I FREAKING GET RID OF THE SELF??? INHERITANCE FREAKING PROBLEMS WOW
-    var playhead = self.context.currentTime - self.recent_start + self.offset_global;
-    if (playhead >= sound.offset) playhead -= sound.offset; // now turns into relative offset.
-    //if (self.offset_global > sound.offset) relative_offset += self.offset_global - sound.offset;
-    //else /*self.offset_global < sound.offset*/ relative_offset = 
-    //var relative_offset = self.offset_global + (self.context.currentTime - self.recent_start) - sound.offset;
-
-    var player = sound.player;
-
-    // call to refresh correct div, id'd by index.
-    var source = this.context.createBufferSource();
-    source.buffer = sound.buffer;
-    source.connect(this.context.destination);
-
-    // add playing buffersource as a new property. maybe UNNECESSARY ADDITIONAL PROPERTIES.
-    // NOW, PLAYINGSOunds IS EXHAUSTIVE.
-    sound.source = source;
-    //sound.player = player;
-
-    source.start(0, playhead);
-    sound.playing = true;
-    // console.log("playing " + sound.index + ": " + sound.url + " from " + playhead + " / " + sound.buffer.duration);
-
-    self.playingSounds.push(sound);
-
-    //console.log(playhead + "/" + sound.buffer.duration);
-
-    sound.player.render(playhead);
-
-    source.onended = function() {
-        //console.log('finished ' + sound.url + ": " + sound.index);
-        source.stop();
-        sound.playing = false;
-    }
-
+    recursivePlay(i);
 }
 
 AudioHandler.prototype.pauseManager = function() {
@@ -182,8 +141,7 @@ AudioHandler.prototype.pauseManager = function() {
     self.recent_pause = context.currentTime - self.recent_start + self.offset_global;
     self.playing = false;
     $(self.playingSounds).each(function(index, sound) {
-        sound.source.stop();
-        sound.playing = false;
+        sound.pause();
     });
     self.playingSounds = [];
 
@@ -203,13 +161,11 @@ AudioHandler.prototype.handleClick = function() {
 
     // control from middle of player.
     $(self.soundList).each(function(index, sound) {
-        $(sound.player.player).click(function(e) {
-            var newXpos = (e.clientX - $(this).offset().left);
-            var new_offset_global = (newXpos / $(this).width()) * sound.buffer.duration + sound.offset;
-
+        // the player clicked will callback the parameter.
+        sound.player.handleClick(function(new_offset_global) {
             self.pauseManager();
             $(self.soundList).each(function(index, sound) {
-                $(sound.player.progress).width(0);
+                sound.player.resetWidth();
                 //$(player.textProgress).html("");
             });
             window.setTimeout(function(){self.play_onClick(new_offset_global);}, 50);
@@ -233,11 +189,44 @@ function Sound(index, sound, parent) {
         - offset_global
      */
     this.player = new Player(this);
-
-    this.initialize();
 }
 
-Sound.prototype.initialize = function() {
+Sound.prototype.play = function() { // CAN I FREAKING GET RID OF THE SELF??? INHERITANCE FREAKING PROBLEMS WOW
+    var playheadTime = this.parent.context.currentTime - this.parent.recent_start + this.parent.offset_global;
+    if (playheadTime >= this.offset) playheadTime -= this.offset; // now turns into relative offset.
+    //if (self.offset_global > sound.offset) relative_offset += self.offset_global - sound.offset;
+    //else /*self.offset_global < sound.offset*/ relative_offset = 
+    //var relative_offset = self.offset_global + (self.context.currentTime - self.recent_start) - sound.offset;
+
+    // call to refresh correct div, id'd by index.
+    this.source = this.parent.context.createBufferSource();
+    this.source.buffer = this.buffer;
+    this.source.connect(this.parent.context.destination);
+
+    this.source.start(0, playheadTime);
+    this.playing = true;
+    // console.log("playing " + sound.index + ": " + sound.url + " from " + playheadTime + " / " + sound.buffer.duration);
+
+    this.parent.playingSounds.push(this);
+
+    //console.log(playheadTime + "/" + sound.buffer.duration);
+
+    this.player.render(playheadTime);
+
+    // BAADDD
+    var source = this.source;
+    var sound = this;
+    source.onended = (function() {
+        //console.log('finished ' + sound.url + ": " + sound.index);
+        source.stop();
+        sound.playing = false;
+    })
+
+}
+
+Sound.prototype.pause = function() {
+    this.source.stop();
+    this.playing = false;
 }
 
 function Player(parentSound) {
@@ -292,12 +281,12 @@ Player.prototype.initialize = function() {
 
 Player.prototype.render = function(relative_offset) {
     // console.log("playhead at " + relative_offset);
-    var time_startRender = (function() {return this.context.currentTime;}); // window object.
+    var time_startRender = this.sound.parent.context.currentTime; // window object.
     var self = this;
     //for animation
     function _render() {
         if (self.sound.playing) {
-            var soundProgress = this.context.currentTime - time_startRender + relative_offset;
+            var soundProgress = self.sound.parent.context.currentTime - time_startRender + relative_offset;
             var soundPercent = (soundProgress / self.sound.buffer.duration) * 100;
             
             $(self.progress).width(soundPercent + "%");
@@ -317,7 +306,19 @@ Player.prototype.render = function(relative_offset) {
     if (relative_offset === "ALL")
         $(this.progress).width("100%");
     else
-        _render()
+        _render();
+}
+
+Player.prototype.resetWidth = function() {$(this.progress).width(0);}
+
+Player.prototype.handleClick = function(callback) {
+    var self = this;
+    $(this.player).click(function(e) {
+        var newXpos = (e.clientX - $(this).offset().left);
+        var new_offset_global = (newXpos / $(this).width()) * self.sound.buffer.duration + self.sound.offset;
+        
+        callback(new_offset_global);
+    });
 }
 
 Player.prototype.movePlayhead = function() {
