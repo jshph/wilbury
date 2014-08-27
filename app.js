@@ -53,41 +53,37 @@ BufferLoader.prototype.load = function() {
 
 
 function AudioHandler(soundList, context, clock) {
-    this.recent_start;
-    this.recent_pause;
     this.soundList = soundList;
     //this.source; //??
     this.context = context;
-    this.Players;
     this.totalDuration;
     this.clock = clock;
     this.playingSounds = new Array();
     this.WAAQueue = new Array();
 
-    this.initialize();
+    this.offset_global = 0; // needed as a member for pauseManager's use.
+    
+    this.totalDuration = 0;
+    for (var i = 0; i < this.soundList.length; i++) {
+        this.totalDuration += this.soundList[i].buffer.duration;
+    }
+
+    this.playing = false;
+    this.recent_start = 0, this.recent_pause = 0;
+
+    this.createSounds();
     // cannot have this.player.playing because one-time assignment isn't practical for a dynamic variable
 }
 
 // NOTE!!! didn't want to deal with the following:
 //  - inheritance of attributes (namely, totalDuration)
 //  - calling default constructors. (instead, used initialize method)
-AudioHandler.prototype.initialize = function() {
-    this.totalDuration = 0;
-    this.Players = [];
-    this.playing = false;
-    // var self = this; // haven't incorporated
-    this.offset_global = 0; // needed as a member for pauseManager's use.
-    this.recent_start = 0, this.recent_pause = 0;
+AudioHandler.prototype.createSounds = function(callback) {
 
-    for (var i = 0; i < this.soundList.length; i++)
-        this.totalDuration += this.soundList[i].buffer.duration;
-
-    // another loop because totalDuration will not be updated till now.
     for (var i = 0; i < this.soundList.length; i++) {
-        this.Players[i] = new Player(this.soundList[i], this.totalDuration, i, this.context);
-
-        this.soundList[i].index = i; // need to do it here and not in BufferLoader because AudioHandler receives the sorted soundList; now safe.
-        // this redundancy may be useful for Player rendering specificity.
+        this.soundList[i] = new Sound(i, this.soundList[i], this);
+        // reconstruct soundList
+        // need to initialize index (i) here for sound because BufferLoader's soundlist had to be sorted in main first.
     }
 
     this.handleClick();
@@ -96,13 +92,12 @@ AudioHandler.prototype.initialize = function() {
 AudioHandler.prototype.play_onClick = function(offset_global) { // offset format, specified in handleClick, is necessary to handle clicks on elements that overlap: element clicked can have later start time than the element that it overlaps.
     this.offset_global = offset_global;
 
-    var soundList = this.soundList;
+    var soundList = this.soundList; // for convenience
     this.recent_start = this.context.currentTime;// + offset_global;
     var i; // first valid sound's index
 
     for (i = 0; i < soundList.length; i++) {
-        //console.log("touched over " + i);
-        this.Players[i].render("ALL", soundList[i], this);
+        soundList[i].player.render("ALL");
         if (soundList[i].offset + soundList[i].buffer.duration >= this.offset_global) break;
     } // aka first valid. start from here, but don't do anything yet.
     // console.log("valid sound found " + soundList[i].url + " with offset " + soundList[i].offset);
@@ -124,23 +119,22 @@ AudioHandler.prototype.play_onClick = function(offset_global) { // offset format
 }
 
 AudioHandler.prototype.play_Chrono = function(i) {
-    var self = this;
     var queued_event;
 
     function recursivePlay(index) {
         queued_event = this.clock.callbackAtTime(
             function() {
-                if (self.playing && index < self.soundList.length) {
-                    self.play(self.soundList[index], self);
+                if (this.playing && index < this.soundList.length) {
+                    this.play(this.soundList[index], this);
                     recursivePlay(++index);
                     return index;
                 }
                 //else??
-            }, Number(self.recent_start + self.soundList[index].offset - self.offset_global));
-        self.WAAQueue.push(queued_event);
+            }, Number(this.recent_start + this.soundList[index].offset - this.offset_global));
+        this.WAAQueue.push(queued_event);
     }
 
-    recursivePlay(i);
+    recursivePlay.call(this, i);
 }
 
 AudioHandler.prototype.play = function(sound, self) { // CAN I FREAKING GET RID OF THE SELF??? INHERITANCE FREAKING PROBLEMS WOW
@@ -150,7 +144,7 @@ AudioHandler.prototype.play = function(sound, self) { // CAN I FREAKING GET RID 
     //else /*self.offset_global < sound.offset*/ relative_offset = 
     //var relative_offset = self.offset_global + (self.context.currentTime - self.recent_start) - sound.offset;
 
-    var player = self.Players[sound.index];
+    var player = sound.player;
 
     // call to refresh correct div, id'd by index.
     var source = this.context.createBufferSource();
@@ -160,24 +154,22 @@ AudioHandler.prototype.play = function(sound, self) { // CAN I FREAKING GET RID 
     // add playing buffersource as a new property. maybe UNNECESSARY ADDITIONAL PROPERTIES.
     // NOW, PLAYINGSOunds IS EXHAUSTIVE.
     sound.source = source;
-    sound.player = player;
+    //sound.player = player;
 
     source.start(0, playhead);
-    player.playing = true;
+    sound.playing = true;
     // console.log("playing " + sound.index + ": " + sound.url + " from " + playhead + " / " + sound.buffer.duration);
 
     self.playingSounds.push(sound);
 
     //console.log(playhead + "/" + sound.buffer.duration);
 
-    player.render(
-        playhead, ///*(self.offset_global > sound.offset) ? playhead : playhead - (this.context.currentTime - self.recent_start)*/ 
-        sound, self);
+    sound.player.render(playhead);
 
     source.onended = function() {
         //console.log('finished ' + sound.url + ": " + sound.index);
         source.stop();
-        player.playing = false;
+        sound.playing = false;
     }
 
 }
@@ -191,7 +183,7 @@ AudioHandler.prototype.pauseManager = function() {
     self.playing = false;
     $(self.playingSounds).each(function(index, sound) {
         sound.source.stop();
-        sound.player.playing = false;
+        sound.playing = false;
     });
     self.playingSounds = [];
 
@@ -201,23 +193,23 @@ AudioHandler.prototype.pauseManager = function() {
 }
 
 AudioHandler.prototype.handleClick = function() {
-    var self = this;
-    // control from toggle button.
-    $('#play_toggle').click(function() {
-        if (self.playing) self.pauseManager();
-        else self.play_onClick(self.recent_pause);
+    var self = this; // for convenience of anonymous functions
+
+    $('#play_toggle').click(
+        function() {
+            if (self.playing) self.pauseManager();
+            else self.play_onClick(self.recent_pause);
     });
 
     // control from middle of player.
-    $(self.Players).each(function(index, player) {
-        var sound = player.sound;
-        $(player.player).click(function(e) {
+    $(self.soundList).each(function(index, sound) {
+        $(sound.player.player).click(function(e) {
             var newXpos = (e.clientX - $(this).offset().left);
             var new_offset_global = (newXpos / $(this).width()) * sound.buffer.duration + sound.offset;
 
             self.pauseManager();
-            $(self.Players).each(function(index, player) {
-                $(player.progress).width(0);
+            $(self.soundList).each(function(index, sound) {
+                $(sound.player.progress).width(0);
                 //$(player.textProgress).html("");
             });
             window.setTimeout(function(){self.play_onClick(new_offset_global);}, 50);
@@ -225,83 +217,90 @@ AudioHandler.prototype.handleClick = function() {
     });
 }
 
-function Player(sound, totalDuration, index, context) {
-    this.sound = sound;
-    this.soundIndex = index; // used for selector
-    this.totalDuration = Number(totalDuration);
+function Sound(index, sound, parent) {
+    this.index = index;
 
-    this.context = context;
+    this.buffer = sound.buffer;
+    this.url = sound.url;
+    this.offset = sound.offset;
+    this.playing = false; // * USE!!!!
+    this.parent = parent; // AudioHandler
+    /*
+        of importance:
+        - totalDuration
+        - recent_start
+        - recent_pause
+        - offset_global
+     */
+    this.player = new Player(this);
 
-    this.playing = false;
+    this.initialize();
+}
 
-    this.player, this.progress;
+Sound.prototype.initialize = function() {
+}
+
+function Player(parentSound) {
+    //this.player.player, this.player.progress, this.player.textProgress;
+    this.sound = parentSound; // of course, this.player.sound.buffer, etc, is available in Sound class but never used.
 
     this.initialize();
     this.movePlayhead();
-    //construct div elements here.
 }
 
 var topOffset = 0;
 
 Player.prototype.initialize = function() {
     // to incorporate Handlebars
-
-    var sound = this.sound;
     var scale = 1000;
 
-    var textProgress = document.createElement('div');
-    $(textProgress).addClass('textProgress')
+    this.textProgress = document.createElement('div');
+    $(this.textProgress).addClass('textProgress')
                 .html("");
 
-    var progress = document.createElement('div');
-    $(progress).addClass('progress');
+    this.progress = document.createElement('div');
+    $(this.progress).addClass('progress');
 
-    var player = document.createElement('div');
-    $(player).addClass('player')
-        .width( (sound.buffer.duration / this.totalDuration) * scale)
+    this.player = document.createElement('div');
+    $(this.player).addClass('player')
+        .width( (this.sound.buffer.duration / this.sound.parent.totalDuration) * scale)
         .css({
-                'left': (sound.offset / this.totalDuration) * scale ,
+                'left': (this.sound.offset / this.sound.parent.totalDuration) * scale ,
                 'top': topOffset
             })
-        .data('id', "sound_" + this.soundIndex);
+        .data('id', "sound_" + this.index);
     
-    $(player).append(progress);
+    $(this.player).append(this.progress);
     
-    $(player).append(textProgress);
+    $(this.player).append(this.textProgress);
 
     topOffset += 65;
 
-    $(player).appendTo($('.soundContainer'));
+    $(this.player).appendTo($('.soundContainer'));
 
     // have yet to tidy up centering of all sound elements (after each add, adjust margins)
 
     this.overPlayer = document.createElement('div');
     $(this.overPlayer).addClass('overPlayer');
-    $(player).append(this.overPlayer);
+    $(this.player).append(this.overPlayer);
 
     // initialize playhead
     this.playhead = document.createElement('div');
     $(this.playhead).addClass('playhead');
-    $(player).append(this.playhead);
-
-    this.player = player;
-    this.progress = progress;
-    this.textProgress = textProgress;
+    $(this.player).append(this.playhead);
 }
 
-Player.prototype.render = function(relative_offset, sound, self) {
-    var player_self = this;
+Player.prototype.render = function(relative_offset) {
     // console.log("playhead at " + relative_offset);
-//console.log(offset_percentage);
-    var soundProgress = relative_offset;
-    var time_startRender = this.context.currentTime;
+    var time_startRender = (function() {return this.context.currentTime;}); // window object.
+    var self = this;
     //for animation
     function _render() {
-        if (player_self.playing) {
+        if (self.sound.playing) {
             var soundProgress = this.context.currentTime - time_startRender + relative_offset;
-            var soundPercent = (soundProgress / sound.buffer.duration) * 100;
+            var soundPercent = (soundProgress / self.sound.buffer.duration) * 100;
             
-            $(player_self.progress).width(soundPercent + "%");
+            $(self.progress).width(soundPercent + "%");
 
             //and refresh number text
             //$(player_self.player).children($('.textProgress')).html(soundProgress.toFixed(2) + " / " + sound.buffer.duration.toFixed() + " secs.");
@@ -316,9 +315,9 @@ Player.prototype.render = function(relative_offset, sound, self) {
     }
 
     if (relative_offset === "ALL")
-        $(player_self.progress).width("100%");
+        $(this.progress).width("100%");
     else
-        _render();
+        _render()
 }
 
 Player.prototype.movePlayhead = function() {
