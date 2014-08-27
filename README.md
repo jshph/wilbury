@@ -1,7 +1,7 @@
 ##wilbury##
 Project currently in development. Currently, the player, which manages playback of multiple audio files scattered throughout the timeline, works without a hitch.
 
-![](/http://puu.sh/b9As7/c4b3fdac75.png)
+![](//Screenshot%202014-08-26%2008.51.24.png)
 ###Current features:###
 - Clicking on a spot in any one track will play all tracks that intersect with that time.
 - Play/pause button is also functional.
