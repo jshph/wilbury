@@ -63,6 +63,7 @@ function AudioHandler(soundList, context, clock) {
 
     this.offset_global = 0; // needed as a member for pauseManager's use.
     
+    // intialize totalDuration
     this.totalDuration = 0;
     for (var i = 0; i < this.soundList.length; i++) {
         this.totalDuration += this.soundList[i].buffer.duration;
@@ -71,23 +72,33 @@ function AudioHandler(soundList, context, clock) {
     this.playing = false;
     this.recent_start = 0, this.recent_pause = 0;
 
-    this.initialize_soundCreation();
-    // cannot have this.player.playing because one-time assignment isn't practical for a dynamic variable
-}
 
-AudioHandler.prototype.initialize_soundCreation = function(callback) {
+    // initialize soundList (including initial sort by offset)
+    // by converting the format of soundList (swap).
+    // TO IMPROVE: partition-based conversion.
+    this.temp = new Array();
+    for (var i = 0; i < this.soundList.length; i++) {
+        //this.soundList[i] = new Sound(i, this.soundList[i], this);
+        this.temp.push(new Sound(this.soundList[i], this));
+        // reconstruct soundList
+        // need to initialize index (i) here for sound because BufferLoader's soundlist had to be sorted in main first.
+    }
+    this.soundList = this.temp;
     this.soundList.sort(function(a, b) {
             return a.offset - b.offset;
     });
 
-    for (var i = 0; i < this.soundList.length; i++) {
-        this.soundList[i] = new Sound(i, this.soundList[i], this);
-        // reconstruct soundList
-        // need to initialize index (i) here for sound because BufferLoader's soundlist had to be sorted in main first.
-    }
-
     this.handleClick();
 }
+
+AudioHandler.prototype.createSound = function(sound) {
+    this.soundList.push(new Sound(this.soundList[i], this));
+    this.soundList.sort(function(a, b) {
+            return a.offset - b.offset;
+    });
+}
+
+
 
 AudioHandler.prototype.play_onClick = function(offset_global) { // offset format, specified in handleClick, is necessary to handle clicks on elements that overlap: element clicked can have later start time than the element that it overlaps.
     this.offset_global = offset_global;
@@ -174,8 +185,7 @@ AudioHandler.prototype.handleClick = function() {
     });
 }
 
-function Sound(index, sound, parent) {
-    this.index = index;
+function Sound(sound, parent) {
 
     this.buffer = sound.buffer;
     this.url = sound.url;
@@ -257,8 +267,7 @@ Player.prototype.initialize = function() {
         .css({
                 'left': (this.sound.offset / this.sound.parent.totalDuration) * scale ,
                 'top': topOffset
-            })
-        .data('id', "sound_" + this.index);
+            });
     
     $(this.player).append(this.progress);
     
