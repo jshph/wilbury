@@ -71,14 +71,14 @@ function AudioHandler(soundList, context, clock) {
     this.playing = false;
     this.recent_start = 0, this.recent_pause = 0;
 
-    this.createSounds();
+    this.initialize_soundCreation();
     // cannot have this.player.playing because one-time assignment isn't practical for a dynamic variable
 }
 
-// NOTE!!! didn't want to deal with the following:
-//  - inheritance of attributes (namely, totalDuration)
-//  - calling default constructors. (instead, used initialize method)
-AudioHandler.prototype.createSounds = function(callback) {
+AudioHandler.prototype.initialize_soundCreation = function(callback) {
+    this.soundList.sort(function(a, b) {
+            return a.offset - b.offset;
+    });
 
     for (var i = 0; i < this.soundList.length; i++) {
         this.soundList[i] = new Sound(i, this.soundList[i], this);
@@ -153,10 +153,11 @@ AudioHandler.prototype.pauseManager = function() {
 AudioHandler.prototype.handleClick = function() {
     var self = this; // for convenience of anonymous functions
 
-    $('#play_toggle').click(
-        function() {
+    $(document).keyup(function(e) {
+        if (e.keyCode === 32) {
             if (self.playing) self.pauseManager();
             else self.play_onClick(self.recent_pause);
+        }
     });
 
     // control from middle of player.
@@ -354,10 +355,6 @@ function init() {
     function finishedLoading(retrieved_soundList) {
         clock.start();
         var soundList = retrieved_soundList;
-
-        soundList.sort(function(a, b) {
-            return a.offset - b.offset;
-        });
 
         audioHandler = new AudioHandler(soundList, context, clock);
     }
