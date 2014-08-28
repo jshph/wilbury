@@ -111,7 +111,7 @@ AudioHandler.prototype.play_onClick = function(offset_global) { // offset format
     var i; // first valid sound's index
 
     for (i = 0; i < soundList.length; i++) {
-        soundList[i].player.render("ALL");
+        soundList[i].player.render("ALL"); // bogus argument.
         if (soundList[i].offset + soundList[i].buffer.duration >= this.offset_global) break;
     } // aka first valid. start from here, but don't do anything yet.
 
@@ -195,12 +195,9 @@ function Sound(sound, addedOrder, parent) {
     this.player = new Player(this);
 }
 
-Sound.prototype.play = function() { // CAN I FREAKING GET RID OF THE SELF??? INHERITANCE FREAKING PROBLEMS WOW
+Sound.prototype.play = function() {
     var playheadTime = this.parent.context.currentTime - this.parent.recent_start + this.parent.offset_global;
     if (playheadTime >= this.offset) playheadTime -= this.offset; // now turns into relative offset.
-    //if (self.offset_global > sound.offset) relative_offset += self.offset_global - sound.offset;
-    //else /*self.offset_global < sound.offset*/ relative_offset = 
-    //var relative_offset = self.offset_global + (self.context.currentTime - self.recent_start) - sound.offset;
 
     // call to refresh correct div, id'd by index.
     this.source = this.parent.context.createBufferSource();
@@ -234,7 +231,6 @@ Sound.prototype.pause = function() {
 }
 
 function Player(parentSound) {
-    //this.player.player, this.player.progress, this.player.textProgress;
     this.sound = parentSound; // of course, this.player.sound.buffer, etc, is available in Sound class but never used.
 
     this.initialize();
@@ -378,7 +374,7 @@ function init() {
                 [{"url": "/../sample_songs/pakabaka.mp3", "offset": audioHandler.recent_pause}], 
                 function(soundList) {
                     audioHandler.createSound.call(audioHandler, soundList[0]);
-                } 
+                }
             );
         newSound_bufferloader.load();
     });
