@@ -167,6 +167,7 @@ AudioHandler.prototype.pauseManager = function() {
 AudioHandler.prototype.handleClick = function() {
     var self = this; // for convenience of anonymous functions
 
+    // manage global keypress
     $(document).keyup(function(e) {
         if (e.keyCode === 32) {
             if (self.playing) self.pauseManager();
@@ -174,18 +175,7 @@ AudioHandler.prototype.handleClick = function() {
         }
     });
 
-    // control from middle of player.
-    /*$(self.soundList).each(function(index, sound) {
-        // the player clicked will callback the parameter.
-        sound.player.handleClick(function(new_offset_global) {
-            self.pauseManager();
-            $(self.soundList).each(function(index, sound) {
-                sound.player.resetWidth();
-                //$(player.textProgress).html("");
-            });
-            window.setTimeout(function(){self.play_onClick(new_offset_global);}, 50);
-        });
-    });*/
+    // that of clicking on individual players has been moved to Player object initialization.
 }
 
 function Sound(sound, addedOrder, parent) {
@@ -284,7 +274,7 @@ Player.prototype.initialize = function() {
                 'top': topOffset
             })
         .data('id', 'added_' + this.sound.addedOrder);
-        
+
     $(this.player).append(this.progress);
     
     $(this.player).append(this.textProgress);
@@ -385,7 +375,7 @@ function init() {
     $('#submitSound').click(function() {
         var newSound_bufferloader = new BufferLoader(
                 context,
-                [{"url": "/../sample_songs/pakabaka.mp3", "offset": 4}], 
+                [{"url": "/../sample_songs/pakabaka.mp3", "offset": audioHandler.recent_pause}], 
                 function(soundList) {
                     audioHandler.createSound.call(audioHandler, soundList[0]);
                 } 
