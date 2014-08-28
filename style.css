@@ -45,6 +45,7 @@ div {
 
 .player:hover {
     border-bottom: rgb(247, 100, 100) 5px solid;
+    cursor:pointer;
 }
 
 .progress {

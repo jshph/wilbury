@@ -68,18 +68,20 @@ function AudioHandler(soundList, context, clock) {
     for (var i = 0; i < this.soundList.length; i++) {
         this.totalDuration += this.soundList[i].buffer.duration;
     }
+    this.orig_totalDuration = this.totalDuration; // preserve for new sound initialize.
 
     this.playing = false;
     this.recent_start = 0, this.recent_pause = 0;
+    this.numSounds = 0;
 
 
     // initialize soundList (including initial sort by offset)
     // by converting the format of soundList (swap).
-    // TO IMPROVE: partition-based conversion.
+    // TO IMPROVE: partition-based conversion. cannot use createSound right now because of swap necessity.
     this.temp = new Array();
     for (var i = 0; i < this.soundList.length; i++) {
         //this.soundList[i] = new Sound(i, this.soundList[i], this);
-        this.temp.push(new Sound(this.soundList[i], this));
+        this.temp.push(new Sound(this.soundList[i], ++this.numSounds, this));
         // reconstruct soundList
         // need to initialize index (i) here for sound because BufferLoader's soundlist had to be sorted in main first.
     }
@@ -92,12 +94,13 @@ function AudioHandler(soundList, context, clock) {
 }
 
 AudioHandler.prototype.createSound = function(sound) {
-    this.soundList.push(new Sound(this.soundList[i], this));
+    this.totalDuration += Number(sound.buffer.duration);
+    this.soundList.push(new Sound(sound, ++this.numSounds, this));
+    // TO IMPROVE: insertion sort by sound offset.
     this.soundList.sort(function(a, b) {
             return a.offset - b.offset;
     });
 }
-
 
 
 AudioHandler.prototype.play_onClick = function(offset_global) { // offset format, specified in handleClick, is necessary to handle clicks on elements that overlap: element clicked can have later start time than the element that it overlaps.
@@ -172,7 +175,7 @@ AudioHandler.prototype.handleClick = function() {
     });
 
     // control from middle of player.
-    $(self.soundList).each(function(index, sound) {
+    /*$(self.soundList).each(function(index, sound) {
         // the player clicked will callback the parameter.
         sound.player.handleClick(function(new_offset_global) {
             self.pauseManager();
@@ -182,11 +185,11 @@ AudioHandler.prototype.handleClick = function() {
             });
             window.setTimeout(function(){self.play_onClick(new_offset_global);}, 50);
         });
-    });
+    });*/
 }
 
-function Sound(sound, parent) {
-
+function Sound(sound, addedOrder, parent) {
+    this.addedOrder = addedOrder;
     this.buffer = sound.buffer;
     this.url = sound.url;
     this.offset = sound.offset;
@@ -246,6 +249,18 @@ function Player(parentSound) {
 
     this.initialize();
     this.movePlayhead();
+
+    var self = this;
+    this.handleClick(function(new_offset_global) {
+        self.sound.parent.pauseManager();
+        $(self.sound.parent.soundList).each(function(index, sound) {
+            sound.player.resetWidth();
+            //$(player.textProgress).html("");
+        });
+        window.setTimeout(function(){
+            self.sound.parent.play_onClick(new_offset_global);
+        }, 50);
+    });
 }
 
 var topOffset = 0;
@@ -263,12 +278,13 @@ Player.prototype.initialize = function() {
 
     this.player = document.createElement('div');
     $(this.player).addClass('player')
-        .width( (this.sound.buffer.duration / this.sound.parent.totalDuration) * scale)
+        .width( (this.sound.buffer.duration / this.sound.parent.orig_totalDuration) * scale)
         .css({
-                'left': (this.sound.offset / this.sound.parent.totalDuration) * scale ,
+                'left': (this.sound.offset / this.sound.parent.orig_totalDuration) * scale ,
                 'top': topOffset
-            });
-    
+            })
+        .data('id', 'added_' + this.sound.addedOrder);
+        
     $(this.player).append(this.progress);
     
     $(this.player).append(this.textProgress);
@@ -363,8 +379,17 @@ function init() {
 
     function finishedLoading(retrieved_soundList) {
         clock.start();
-        var soundList = retrieved_soundList;
-
-        audioHandler = new AudioHandler(soundList, context, clock);
+        audioHandler = new AudioHandler(retrieved_soundList, context, clock);
     }
+
+    $('#submitSound').click(function() {
+        var newSound_bufferloader = new BufferLoader(
+                context,
+                [{"url": "/../sample_songs/pakabaka.mp3", "offset": 4}], 
+                function(soundList) {
+                    audioHandler.createSound.call(audioHandler, soundList[0]);
+                } 
+            );
+        newSound_bufferloader.load();
+    });
 }
