@@ -20,16 +20,16 @@ BufferLoader.prototype.loadBuffer = function(sound, index) {
     loader.context.decodeAudioData(
         request.response,
         function(buffer) {
-        if (!buffer) {
-            alert('error decoding file data: ' + url);
-            return;
-        }
-        // buffer is the main purpose, but metadata offset and url are also part of the object.
-        // thus bufferList is more the update of soundList.
-        loader.bufferList.push({"buffer": buffer, "offset": Number(sound.offset), "url": sound.url});
-        console.log('loaded buffer ' + index + ": " + sound.url);
-        if (++loader.loadCount == loader.soundList.length)
-            loader.onload(loader.bufferList);
+            if (!buffer) {
+                alert('error decoding file data: ' + url);
+                return;
+            }
+            // buffer is the main purpose, but metadata offset and url are also part of the object.
+            // thus bufferList is more the update of soundList.
+            loader.bufferList.push({"buffer": buffer, "offset": Number(sound.offset), "url": sound.url});
+            console.log('loaded buffer ' + index + ": " + sound.url);
+            if (++loader.loadCount == loader.soundList.length)
+                loader.onload(loader.bufferList);
         },
         function(error) {
             console.error('decodeAudioData error', error);
@@ -93,8 +93,13 @@ function AudioHandler(soundList, context, clock) {
     this.handleClick();
 }
 
-AudioHandler.prototype.createSound = function(sound) {
-    this.totalDuration += Number(sound.buffer.duration);
+AudioHandler.prototype.createSound = function(buffer) {
+    this.totalDuration += Number(buffer.duration);
+    var sound = {
+        'url': 'asdfsafdsadf',
+        'buffer': buffer,
+        'offset': this.recent_pause
+    }
     this.soundList.push(new Sound(sound, ++this.numSounds, this));
     // TO IMPROVE: insertion sort by sound offset.
     this.soundList.sort(function(a, b) {
@@ -343,7 +348,7 @@ Player.prototype.movePlayhead = function() {
 
 window.onload = init;
 
-var context, bufferloader, audioHandler, clock;
+var context, bufferloader, audioHandler, clock, recorder;
 
 function init() {
   // Fix up prefixing
@@ -366,16 +371,93 @@ function init() {
     function finishedLoading(retrieved_soundList) {
         clock.start();
         audioHandler = new AudioHandler(retrieved_soundList, context, clock);
+        initRecord();
     }
 
-    $('#submitSound').click(function() {
-        var newSound_bufferloader = new BufferLoader(
-                context,
-                [{"url": "/../sample_songs/pakabaka.mp3", "offset": audioHandler.recent_pause}], 
-                function(soundList) {
-                    audioHandler.createSound.call(audioHandler, soundList[0]);
-                }
-            );
-        newSound_bufferloader.load();
-    });
+    function initRecord() {
+        // should unhide the record/submit controls here (or reveal)
+
+        navigator.getUserMedia = ( navigator.getUserMedia ||
+                   navigator.webkitGetUserMedia ||
+                   navigator.mozGetUserMedia ||
+                   navigator.msGetUserMedia);
+        navigator.getUserMedia({audio:true}, startUserMedia, function(e) {
+            console.log("No live audio input: " + e);
+        });
+    }
+
+    function startUserMedia(stream) {
+        var input = context.createMediaStreamSource(stream);
+
+        var zeroGain = context.createGain();
+        zeroGain.gain.value = 0;
+        input.connect(zeroGain);
+        zeroGain.connect(context.destination);
+
+        recorder = new Recorder(input);
+
+        // Recorder object created, now safe to record.
+        listenRecord_start();
+        listenRecord_stop();
+    }
+
+    function listenRecord_start() {
+        $('#recordSound').click(function() {
+            recorder && recorder.record();
+            console.log('Recording...');
+        });
+    }
+
+    function listenRecord_stop() {
+        $('#submitSound').click(function() {
+            recorder && recorder.stop();
+            console.log('Stopped recording.');
+            
+            // create WAV download link using audio data blob
+            // createDownloadLink();
+            recorder.getBuffer(function(buffers) {
+                var newBuffer = context.createBuffer( 2, buffers[0].length, context.sampleRate );
+                newBuffer.getChannelData(0).set(buffers[0]);
+                newBuffer.getChannelData(1).set(buffers[1]);
+                audioHandler.createSound.call(audioHandler, newBuffer);
+            });
+            
+            recorder.clear();
+        });
+    }
+
+    /*function createDownloadLink() {
+        recorder && recorder.exportWAV(function(blob) {
+          // var url = URL.createObjectURL(blob);
+          // listenSubmit(url);
+          var li = document.createElement('li');
+          var au = document.createElement('audio');
+          var hf = document.createElement('a');
+          
+          au.controls = true;
+          au.src = url;
+          hf.href = url;
+          hf.download = new Date().toISOString() + '.wav';
+          hf.innerHTML = hf.download;
+          li.appendChild(au);
+          li.appendChild(hf);
+          recordingslist.appendChild(li);
+          console.log(blob);
+        });
+    }*/
+
+/////////
+    function listenSubmit(url) {
+        $('#submitSound').css({'display': 'inline-block'});
+        $('#submitSound').click(function() {
+            var newSound_bufferloader = new BufferLoader(
+                    context,
+                    [{"url": url, "offset": audioHandler.recent_pause}], 
+                    function(soundList) {
+                        audioHandler.createSound.call(audioHandler, soundList[0]);
+                    }
+                );
+            newSound_bufferloader.load();
+        });
+    }
 }
