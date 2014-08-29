@@ -34,7 +34,7 @@ div {
 }
 
 .player {
-    height: 50px;
+    /*height: 50px;*/
     width:600px;
     background-color: rgb(221, 221, 221);
     border-bottom: rgb(206, 167, 167) 5px solid;
@@ -67,6 +67,7 @@ of x position.*/
     position: absolute;
     top: 0px;
     opacity: 0;
+    display:block;
 }
 
 .playhead {
