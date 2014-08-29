@@ -13,3 +13,4 @@ Project currently in development. Currently, the multitrack player works well.
 - This is my first project involving OOP in Javascript. After the multitrack player worked to start with, I refactored the code to reflect more modular/organized OOP.
 - Web Audio API provides precise timing to play sounds. Made custom player by animating HTML elements, allowing for flexibility in positioning the sounds graphically.
 - Since Web Audio API is not built for easy scheduling/cancellation of sounds, I used WAAclock as a wrapper to bypass one challenge.
+- Thanks to Matt Diamond for Recorder.JS, which utilizes Web Audio API to record sounds. My application also uses Web Audio API, so there was little work needed to hook up the recorded sound to the existing AudioContext.
