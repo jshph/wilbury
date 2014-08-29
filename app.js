@@ -254,37 +254,31 @@ function Player(parentSound) {
     });
 }
 
-var topOffset = 0;
+var playerCont_height = 50;
+// var playerCont_topoffset = 0;
 
 Player.prototype.initialize = function() {
     // to incorporate Handlebars
     var scale = 1000;
 
-    this.textProgress = document.createElement('div');
-    $(this.textProgress).addClass('textProgress')
-                .html("");
-
-    this.progress = document.createElement('div');
-    $(this.progress).addClass('progress');
-
     this.player = document.createElement('div');
     $(this.player).addClass('player')
         .width( (this.sound.buffer.duration / this.sound.parent.orig_totalDuration) * scale)
+        .height(playerCont_height)
         .css({
-                'left': (this.sound.offset / this.sound.parent.orig_totalDuration) * scale ,
-                'top': topOffset
+                'left': (this.sound.offset / this.sound.parent.orig_totalDuration) * scale
+                //'top': playerCont_topoffset
             })
         .data('id', 'added_' + this.sound.addedOrder);
 
+    this.progress = document.createElement('div');
+    $(this.progress).addClass('progress');
     $(this.player).append(this.progress);
     
-    $(this.player).append(this.textProgress);
-
-    topOffset += 65;
-
-    $(this.player).appendTo($('.soundContainer'));
-
-    // have yet to tidy up centering of all sound elements (after each add, adjust margins)
+    /*this.textProgress = document.createElement('div');
+    $(this.textProgress).addClass('textProgress')
+                .html("");*/
+    // $(this.player).append(this.textProgress);
 
     this.overPlayer = document.createElement('div');
     $(this.overPlayer).addClass('overPlayer');
@@ -294,6 +288,15 @@ Player.prototype.initialize = function() {
     this.playhead = document.createElement('div');
     $(this.playhead).addClass('playhead');
     $(this.player).append(this.playhead);
+
+    this.soundContainer = document.createElement('div');
+    $(this.soundContainer).addClass('soundContainer');
+
+    $(this.player).appendTo($(this.soundContainer));
+    $(this.soundContainer).appendTo($('.daw'));
+    // playerCont_topoffset += playerCont_height + 15;
+
+    // have yet to tidy up centering of all sound elements (after each add, adjust margins)
 }
 
 Player.prototype.render = function(relative_offset) {

@@ -17,13 +17,20 @@ div {
     color: black;
 }
 
-.soundContainer {
+.daw {
     margin-top: 65px;
     position: relative;
     text-align: left;
     width:100%;
 }
 
+.soundContainer {
+    width:100%;
+    display:block;
+    margin-bottom:20px;
+}
+
+/*currently unused*/
 .textProgress {
     color: black;
     font-size:12px;
@@ -38,8 +45,8 @@ div {
     width:600px;
     background-color: rgb(221, 221, 221);
     border-bottom: rgb(206, 167, 167) 5px solid;
-    display: block;
-    position: absolute;
+    display: inline-block;
+    position: relative;
     text-align: left;
 }
 
