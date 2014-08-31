@@ -17,6 +17,8 @@ div {
     color: black;
 }
 
+/*~~~ DAW SECTION ~~~~~~~~*/
+
 .daw {
     margin-top: 65px;
     position: relative;
@@ -24,38 +26,101 @@ div {
     width:100%;
 }
 
-.soundContainer {
+.soundRow {
     width:100%;
     display:block;
     margin-bottom:20px;
 }
 
 /*currently unused*/
-.textProgress {
+/*.textProgress {
     color: black;
     font-size:12px;
     margin: 8px;
     font-family: Helvetica;
     display: block;
     height:12px;
+}*/
+
+/*invisible, goes around in row.*/
+.playerCont {
+    height:70px;
+    display:inline-block;
+    position:relative;
 }
 
-.player {
-    /*height: 50px;*/
-    width:600px;
+.controlCont_side {
+    position:absolute;
+    z-index:0;
+    left:0px;
+    transition: left .3s;
+}
+
+.player_control {
+    width:20px;
+    height:20px;
+    margin:5px;
+    position:relative;
+    display:block;
+    cursor:pointer;
+}
+
+.soundRow:hover .controlCont_side {
+    left:-30px;
+    z-index: 0; /*temp 1*/
+    transition: left z-index .3s;
+}
+
+.control-play {
+    background-color: rgb(87, 247, 87);
+}
+
+.control-play:hover {
+    background-color: rgb(0, 211, 0); 
+}
+
+.control-pause {
+    background-color: red;
+}
+
+.control-mute {
+    background-color:gray;
+}
+
+.playerCont:hover .player_sound {
+    height:40px;
+    transition:height .2s;
+}
+
+.player_sound {
+    height: 70px;
+    transition:height .2s;
+    width:100%;
     background-color: rgb(221, 221, 221);
     border-bottom: rgb(206, 167, 167) 5px solid;
     display: inline-block;
-    position: relative;
+    position: absolute;
+    z-index:1;
     text-align: left;
 }
 
-.player:hover {
+.recordBar {
+    height: 70px;
+    transition:height .2s;
+    width:100%;
+    background-color: rgb(211, 197, 191);
+    display: inline-block;
+    position: absolute;
+    z-index:0;
+    text-align: left;
+}
+
+.player_sound:hover {
     border-bottom: rgb(247, 100, 100) 5px solid;
     cursor:pointer;
 }
 
-.progress {
+.progress_sound {
     height: 100%;
     width: 0%;
     display: inline-block;
@@ -67,7 +132,7 @@ div {
 not reliable; it is possible to divert hover from .player to .playhead, which counts as mouse exit
 because .playhead is on top of the player. Thus overPlayer overlays the playhead as a reliable source
 of x position.*/
-.overPlayer {
+.overPlayer_sound {
     height: 100%;
     width: 100%;
     background-color: black;
@@ -75,19 +140,37 @@ of x position.*/
     top: 0px;
     opacity: 0;
     display:block;
+    z-index:3;
 }
 
 .playhead {
     width: 3px;
     background-color: rgb(247, 100, 100);
-    height: 50px;
+    height: 70px;
     display: none;
     position: absolute;
-    z-index: 1;
+    z-index: 2;
     top: 0px;
+    transition:height .2s;
 }
 
-.player:hover .playhead {
+.recordButton {
+    width:12px;
+    height:12px;
+    background-color: rgb(233, 193, 183);
+    border-radius: 12px;
+    border: 4px solid rgb(232, 105, 103);
+    display:none;
+    position:absolute;
+    z-index: 2;
+    bottom:3px;
+}
+
+.player_sound:hover .playhead {
+    display: inline-block;
+}
+
+.recordBar:hover .recordButton {
     display: inline-block;
 }
 

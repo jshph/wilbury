@@ -254,25 +254,20 @@ function Player(parentSound) {
     });
 }
 
-var playerCont_height = 50;
-// var playerCont_topoffset = 0;
-
 Player.prototype.initialize = function() {
     // to incorporate Handlebars
     var scale = 1000;
 
-    this.player = document.createElement('div');
-    $(this.player).addClass('player')
-        .width( (this.sound.buffer.duration / this.sound.parent.orig_totalDuration) * scale)
-        .height(playerCont_height)
-        .css({
-                'left': (this.sound.offset / this.sound.parent.orig_totalDuration) * scale
-                //'top': playerCont_topoffset
-            })
-        .data('id', 'added_' + this.sound.addedOrder);
+    // IMPORTANT: This function is arranged to render from inside out.
 
+
+    // create element that contains the sound progress (more of a background)
+    this.player = document.createElement('div');
+    $(this.player).addClass('player_sound');
+
+    // create element that displays progress of sound.
     this.progress = document.createElement('div');
-    $(this.progress).addClass('progress');
+    $(this.progress).addClass('progress_sound');
     $(this.player).append(this.progress);
     
     /*this.textProgress = document.createElement('div');
@@ -280,8 +275,9 @@ Player.prototype.initialize = function() {
                 .html("");*/
     // $(this.player).append(this.textProgress);
 
+    // create overPlayer to track mouse movement for playhead.
     this.overPlayer = document.createElement('div');
-    $(this.overPlayer).addClass('overPlayer');
+    $(this.overPlayer).addClass('overPlayer_sound');
     $(this.player).append(this.overPlayer);
 
     // initialize playhead
@@ -289,11 +285,47 @@ Player.prototype.initialize = function() {
     $(this.playhead).addClass('playhead');
     $(this.player).append(this.playhead);
 
-    this.soundContainer = document.createElement('div');
-    $(this.soundContainer).addClass('soundContainer');
+    // kinda not inside->out here on...
 
-    $(this.player).appendTo($(this.soundContainer));
-    $(this.soundContainer).appendTo($('.daw'));
+    // Create player wrapper (including controls for play, pause, record, sound, etc)
+    this.playerCont = document.createElement('div');
+    $(this.playerCont).addClass('playerCont')
+        .width( (this.sound.buffer.duration / this.sound.parent.orig_totalDuration) * scale)
+        .css({
+                'left': (this.sound.offset / this.sound.parent.orig_totalDuration) * scale
+                //'top': playerCont_topoffset
+            })
+        .data('id', 'added_' + this.sound.addedOrder);
+
+    // play / pause and mute buttons.
+    this.playToggle = document.createElement('div');
+    $(this.playToggle).addClass('player_control control-play');
+    this.mute = document.createElement('div');
+    $(this.mute).addClass('player_control control-mute');
+    $(document.createElement('div')).addClass('controlCont_side')
+            .append($(this.playToggle), $(this.mute))
+            .appendTo($(this.playerCont));
+
+    this.recordBar = document.createElement('div');
+    $(this.recordBar).addClass('recordBar')
+            .appendTo($(this.playerCont));
+
+    this.overRecordbar = document.createElement('div');
+    $(this.overRecordbar).addClass('overPlayer_sound') // aka overRecord
+            .appendTo($(this.recordBar));
+
+    this.recordButton = document.createElement('div');
+    $(this.recordButton).addClass('recordButton')
+            .appendTo($(this.recordBar));
+
+    $(this.player).appendTo($(this.playerCont));
+
+    // create horizontal row for player to be arranged in.
+    this.soundRow = document.createElement('div');
+    $(this.soundRow).addClass('soundRow');
+    $(this.playerCont).appendTo($(this.soundRow));
+
+    $(this.soundRow).appendTo($('.daw'));
     // playerCont_topoffset += playerCont_height + 15;
 
     // have yet to tidy up centering of all sound elements (after each add, adjust margins)
@@ -341,11 +373,16 @@ Player.prototype.handleClick = function(callback) {
     });
 }
 
-Player.prototype.movePlayhead = function() {
+Player.prototype.movePlayhead = function() { // and move Record Button
     var playhead = this.playhead;
+    var recordButton = this.recordButton;
     
     $(this.overPlayer).mousemove(function(event) {
         $(playhead).css({'left':event.offsetX});
+    });
+
+    $(this.overRecordbar).mousemove(function(event) {
+        $(recordButton).css({'left':event.offsetX - 9});
     });
 }
 
