@@ -90,15 +90,19 @@ function AudioHandler(soundList, context, clock) {
             return a.offset - b.offset;
     });
 
+    this.rec_status;
+    this.recent_recPos;
+
     this.handleClick();
 }
 
 AudioHandler.prototype.createSound = function(buffer) {
     this.totalDuration += Number(buffer.duration);
+        
     var sound = {
         'url': 'asdfsafdsadf',
         'buffer': buffer,
-        'offset': this.recent_pause
+        'offset': this.recent_recPos
     }
     this.soundList.push(new Sound(sound, ++this.numSounds, this));
     // TO IMPROVE: insertion sort by sound offset.
@@ -374,15 +378,20 @@ Player.prototype.handleClick = function(callback) {
 }
 
 Player.prototype.movePlayhead = function() { // and move Record Button
+    var self = this;
     var playhead = this.playhead;
     var recordButton = this.recordButton;
-    
+
     $(this.overPlayer).mousemove(function(event) {
         $(playhead).css({'left':event.offsetX});
     });
 
     $(this.overRecordbar).mousemove(function(event) {
         $(recordButton).css({'left':event.offsetX - 9});
+        if (self.sound.parent.rec_status) {// handle recording start position
+            self.sound.parent.recent_recPos = (event.clientX - 9 - $(this).offset().left) / $(this).width() * self.sound.buffer.duration + self.sound.offset;
+            console.log(self.sound.parent.recent_recPos);
+        }
     });
 }
 
@@ -442,9 +451,11 @@ function init() {
     }
 
     function listenRecord_start() {
-        $('#recordSound').click(function() {
-            recorder && recorder.record();
+        $('.overPlayer_sound').click(function() {
             console.log('Recording...');
+            recorder && recorder.record();
+            audioHandler.pauseManager();
+            audioHandler.rec_status = true; // now tells player to register xPos
         });
     }
 
@@ -452,7 +463,7 @@ function init() {
         $('#submitSound').click(function() {
             recorder && recorder.stop();
             console.log('Stopped recording.');
-            
+            audioHandler.rec_status = false;
             // create WAV download link using audio data blob
             // createDownloadLink();
             recorder.getBuffer(function(buffers) {
@@ -492,7 +503,7 @@ function init() {
         $('#submitSound').click(function() {
             var newSound_bufferloader = new BufferLoader(
                     context,
-                    [{"url": url, "offset": audioHandler.recent_pause}], 
+                    [{"url": url, "offset": 1}], 
                     function(soundList) {
                         audioHandler.createSound.call(audioHandler, soundList[0]);
                     }
