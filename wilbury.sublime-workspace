@@ -4,12 +4,48 @@
 		"selected_items":
 		[
 			[
-				"ine",
-				"inline-block"
+				"over",
+				"overPlayer_sound"
 			],
 			[
-				"over",
-				"overPlayer"
+				"overPlayer",
+				"overPlayer_sound"
+			],
+			[
+				"append",
+				"appendTo  (function)"
+			],
+			[
+				"sound",
+				"soundContainer"
+			],
+			[
+				"create",
+				"createElement  (function)"
+			],
+			[
+				"playerCont",
+				"playerCont_height"
+			],
+			[
+				"listen",
+				"listenRecord_stop"
+			],
+			[
+				"ret",
+				"retrieved_soundList"
+			],
+			[
+				"new",
+				"newXpos"
+			],
+			[
+				"proto",
+				"prototype"
+			],
+			[
+				"ine",
+				"inline-block"
 			],
 			[
 				"play",
@@ -26,10 +62,6 @@
 			[
 				"tex",
 				"textProgress"
-			],
-			[
-				"new",
-				"new_offset_global"
 			],
 			[
 				"inline",
@@ -62,10 +94,6 @@
 			[
 				"wan",
 				"wannabe_serial_currTime"
-			],
-			[
-				"sound",
-				"soundList"
 			],
 			[
 				"soun",
@@ -116,14 +144,6 @@
 	"buffers":
 	[
 		{
-			"file": "app.js",
-			"settings":
-			{
-				"buffer_size": 12602,
-				"line_ending": "Unix"
-			}
-		},
-		{
 			"file": "app2.js",
 			"settings":
 			{
@@ -132,18 +152,18 @@
 			}
 		},
 		{
-			"file": "public/index.html",
+			"file": "Recorderjs/recorder.js",
 			"settings":
 			{
-				"buffer_size": 579,
+				"buffer_size": 2339,
 				"line_ending": "Unix"
 			}
 		},
 		{
-			"file": "style.css",
+			"file": "app.js",
 			"settings":
 			{
-				"buffer_size": 1684,
+				"buffer_size": 19702,
 				"line_ending": "Unix"
 			}
 		}
@@ -154,6 +174,58 @@
 		"height": 49.0,
 		"selected_items":
 		[
+			[
+				"git quick",
+				"Git: Quick Commit"
+			],
+			[
+				"git add",
+				"Git: Add..."
+			],
+			[
+				"quick",
+				"Git: Quick Commit"
+			],
+			[
+				"add",
+				"Git: Add..."
+			],
+			[
+				"git comm",
+				"Git: Commit history"
+			],
+			[
+				"quic",
+				"Git: Quick Commit"
+			],
+			[
+				"status",
+				"Git: Status"
+			],
+			[
+				"push",
+				"Git: Push"
+			],
+			[
+				"git add ",
+				"Git: Add..."
+			],
+			[
+				"git ad",
+				"Git: Add..."
+			],
+			[
+				"git: ",
+				"Git: Commit history"
+			],
+			[
+				"git",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: ",
+				"Package Control: Install Package"
+			],
 			[
 				"install",
 				"Package Control: Install Package"
@@ -167,10 +239,6 @@
 				"Package Control: Install Package"
 			],
 			[
-				"Package Control: ",
-				"Package Control: Install Package"
-			],
-			[
 				"package",
 				"Package Control: Install Package"
 			],
@@ -179,7 +247,7 @@
 				"Package Control: Install Package"
 			]
 		],
-		"width": 350.0
+		"width": 438.0
 	},
 	"console":
 	{
@@ -197,10 +265,13 @@
 	"file_history":
 	[
 		"/Users/joshuapham/Documents/Web/wilbury/wilbury_app/app.js",
+		"/Users/joshuapham/Library/Application Support/Sublime Text 2/Packages/Default/Preferences.sublime-settings",
+		"/Users/joshuapham/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings",
+		"/Users/joshuapham/Library/Application Support/Sublime Text 2/Packages/User/JSON.sublime-settings",
+		"/Users/joshuapham/Documents/Web/wilbury/wilbury_app/public/index.html",
 		"/Users/joshuapham/Documents/Web/wilbury/wilbury_app/public/first.html",
 		"/Users/joshuapham/Documents/Web/wilbury/wilbury_app/index.html",
-		"/Users/joshuapham/Documents/Web/wilbury/wilbury_app/WAAClock-latest.js",
-		"/Users/joshuapham/Library/Application Support/Sublime Text 2/Packages/User/Preferences.sublime-settings"
+		"/Users/joshuapham/Documents/Web/wilbury/wilbury_app/WAAClock-latest.js"
 	],
 	"find":
 	{
@@ -218,6 +289,12 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"soundContainer",
+			"totalDuration",
+			"createSounds",
+			"this",
+			"sound",
+			"self",
 			",",
 			"'",
 			",",
@@ -244,7 +321,7 @@
 			"i"
 		],
 		"highlight": true,
-		"in_selection": true,
+		"in_selection": false,
 		"preserve_case": false,
 		"regex": false,
 		"replace_history":
@@ -259,143 +336,11 @@
 	"groups":
 	[
 		{
-			"selected": 3,
+			"selected": 0,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "app.js",
-					"settings":
-					{
-						"buffer_size": 12602,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								9061,
-								9061
-							]
-						],
-						"settings":
-						{
-							"codeintel": true,
-							"codeintel_config":
-							{
-								"JavaScript":
-								{
-									"codeintel_max_recursive_dir_depth": 2.0,
-									"codeintel_scan_files_in_project": false,
-									"javascriptExtraPaths":
-									[
-									]
-								},
-								"PHP":
-								{
-									"codeintel_max_recursive_dir_depth": 5.0,
-									"codeintel_scan_files_in_project": false,
-									"phpExtraPaths":
-									[
-									]
-								},
-								"Python":
-								{
-									"env":
-									{
-									}
-								}
-							},
-							"codeintel_enabled_languages":
-							[
-								"JavaScript",
-								"Mason",
-								"XBL",
-								"XUL",
-								"RHTML",
-								"SCSS",
-								"Python",
-								"HTML",
-								"Ruby",
-								"Python3",
-								"XML",
-								"Sass",
-								"XSLT",
-								"Django",
-								"HTML5",
-								"Perl",
-								"CSS",
-								"Twig",
-								"Less",
-								"Smarty",
-								"Node.js",
-								"Tcl",
-								"TemplateToolkit",
-								"PHP"
-							],
-							"codeintel_live": true,
-							"codeintel_live_enabled_languages":
-							[
-								"JavaScript",
-								"Mason",
-								"XBL",
-								"XUL",
-								"RHTML",
-								"SCSS",
-								"Python",
-								"HTML",
-								"Ruby",
-								"Python3",
-								"XML",
-								"Sass",
-								"XSLT",
-								"Django",
-								"HTML5",
-								"Perl",
-								"CSS",
-								"Twig",
-								"Less",
-								"Smarty",
-								"Node.js",
-								"Tcl",
-								"TemplateToolkit",
-								"PHP"
-							],
-							"codeintel_max_recursive_dir_depth": 10.0,
-							"codeintel_scan_exclude_dir":
-							{
-								"JavaScript":
-								[
-									"/build/",
-									"/min/"
-								]
-							},
-							"codeintel_scan_files_in_project": true,
-							"codeintel_selected_catalogs":
-							[
-								"PyWin32",
-								"jQuery",
-								"Rails"
-							],
-							"codeintel_snippets": true,
-							"codeintel_syntax_map":
-							{
-								"Python Django": "Python"
-							},
-							"codeintel_tooltips": "popup",
-							"sublime_auto_complete": true,
-							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 3797.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
 					"file": "app2.js",
 					"settings":
 					{
@@ -416,26 +361,26 @@
 							"tab_size": 4,
 							"translate_tabs_to_spaces": true
 						},
-						"translation.x": 0.0,
-						"translation.y": 1601.0,
+						"translation.x": 28.0,
+						"translation.y": 1822.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
-					"buffer": 2,
-					"file": "public/index.html",
+					"buffer": 1,
+					"file": "Recorderjs/recorder.js",
 					"settings":
 					{
-						"buffer_size": 579,
+						"buffer_size": 2339,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								525,
-								525
+								536,
+								536
 							]
 						],
 						"settings":
@@ -544,144 +489,12 @@
 							},
 							"codeintel_tooltips": "popup",
 							"sublime_auto_complete": true,
-							"syntax": "Packages/AngularJS/AngularJS.tmLanguage",
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
 							"tab_size": 2,
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "style.css",
-					"settings":
-					{
-						"buffer_size": 1684,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1301,
-								1301
-							]
-						],
-						"settings":
-						{
-							"codeintel": true,
-							"codeintel_config":
-							{
-								"JavaScript":
-								{
-									"codeintel_max_recursive_dir_depth": 2.0,
-									"codeintel_scan_files_in_project": false,
-									"javascriptExtraPaths":
-									[
-									]
-								},
-								"PHP":
-								{
-									"codeintel_max_recursive_dir_depth": 5.0,
-									"codeintel_scan_files_in_project": false,
-									"phpExtraPaths":
-									[
-									]
-								},
-								"Python":
-								{
-									"env":
-									{
-									}
-								}
-							},
-							"codeintel_enabled_languages":
-							[
-								"JavaScript",
-								"Mason",
-								"XBL",
-								"XUL",
-								"RHTML",
-								"SCSS",
-								"Python",
-								"HTML",
-								"Ruby",
-								"Python3",
-								"XML",
-								"Sass",
-								"XSLT",
-								"Django",
-								"HTML5",
-								"Perl",
-								"CSS",
-								"Twig",
-								"Less",
-								"Smarty",
-								"Node.js",
-								"Tcl",
-								"TemplateToolkit",
-								"PHP"
-							],
-							"codeintel_live": true,
-							"codeintel_live_enabled_languages":
-							[
-								"JavaScript",
-								"Mason",
-								"XBL",
-								"XUL",
-								"RHTML",
-								"SCSS",
-								"Python",
-								"HTML",
-								"Ruby",
-								"Python3",
-								"XML",
-								"Sass",
-								"XSLT",
-								"Django",
-								"HTML5",
-								"Perl",
-								"CSS",
-								"Twig",
-								"Less",
-								"Smarty",
-								"Node.js",
-								"Tcl",
-								"TemplateToolkit",
-								"PHP"
-							],
-							"codeintel_max_recursive_dir_depth": 10.0,
-							"codeintel_scan_exclude_dir":
-							{
-								"JavaScript":
-								[
-									"/build/",
-									"/min/"
-								]
-							},
-							"codeintel_scan_files_in_project": true,
-							"codeintel_selected_catalogs":
-							[
-								"PyWin32",
-								"jQuery",
-								"Rails"
-							],
-							"codeintel_snippets": true,
-							"codeintel_syntax_map":
-							{
-								"Python Django": "Python"
-							},
-							"codeintel_tooltips": "popup",
-							"sublime_auto_complete": true,
-							"syntax": "Packages/CSS/CSS.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1096.0,
+						"translation.y": 1.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -693,19 +506,19 @@
 			"sheets":
 			[
 				{
-					"buffer": 0,
+					"buffer": 2,
 					"file": "app.js",
 					"settings":
 					{
-						"buffer_size": 12602,
+						"buffer_size": 19702,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								12285,
-								12285
+								15067,
+								15067
 							]
 						],
 						"settings":
@@ -819,7 +632,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 5559.0,
+						"translation.y": 6085.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -833,7 +646,7 @@
 	},
 	"input":
 	{
-		"height": 0.0
+		"height": 34.0
 	},
 	"layout":
 	{
@@ -846,25 +659,29 @@
 				1
 			],
 			[
+				1,
 				0,
-				1,
-				1,
-				2
+				2,
+				1
 			]
 		],
 		"cols":
 		[
 			0.0,
+			0.319709608864,
 			1.0
 		],
 		"rows":
 		[
 			0.0,
-			0.5,
 			1.0
 		]
 	},
 	"menu_visible": true,
+	"output.git":
+	{
+		"height": 108.0
+	},
 	"replace":
 	{
 		"height": 0.0
@@ -889,7 +706,7 @@
 	"show_minimap": false,
 	"show_open_files": false,
 	"show_tabs": true,
-	"side_bar_visible": false,
+	"side_bar_visible": true,
 	"side_bar_width": 97.0,
 	"status_bar_visible": true
 }

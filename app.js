@@ -77,17 +77,10 @@ function AudioHandler(soundList, context, clock) {
 
     // initialize soundList (including initial sort by offset)
     // by converting the format of soundList (swap).
-    // TO IMPROVE: partition-based conversion. cannot use createSound right now because of swap necessity.
-    this.temp = new Array();
-    for (var i = 0; i < this.soundList.length; i++) {
-        //this.soundList[i] = new Sound(i, this.soundList[i], this);
-        this.temp.push(new Sound(this.soundList[i], ++this.numSounds, this));
-        // reconstruct soundList
-        // need to initialize index (i) here for sound because BufferLoader's soundlist had to be sorted in main first.
-    }
-    this.soundList = this.temp;
-    this.soundList.sort(function(a, b) {
-            return a.offset - b.offset;
+    // TO IMPROVE: partition-based conversion. cannot use addSound right now because of swap necessity.
+    var self = this;
+    $(this.soundList).each(function(index, sound) {
+        self.addSound(sound, index);
     });
 
     this.rec_status;
@@ -96,15 +89,16 @@ function AudioHandler(soundList, context, clock) {
     this.handleClick();
 }
 
-AudioHandler.prototype.createSound = function(buffer) {
-    this.totalDuration += Number(buffer.duration);
-        
-    var sound = {
-        'url': 'asdfsafdsadf',
-        'buffer': buffer,
-        'offset': this.recent_recPos
-    }
-    this.soundList.push(new Sound(sound, ++this.numSounds, this));
+AudioHandler.prototype.addSound = function(sound, index) {
+    this.totalDuration += Number(sound.buffer.duration);
+
+    if (sound.offset === null)// a sound coming from record will not have an offset inbuilt.
+        sound.offset = this.recent_recPos;
+
+    var tempSound = new Sound(sound, this.numSounds++, this);
+    
+    this.soundList[index] = tempSound;
+
     // TO IMPROVE: insertion sort by sound offset.
     this.soundList.sort(function(a, b) {
             return a.offset - b.offset;
@@ -239,10 +233,15 @@ Sound.prototype.pause = function() {
     this.playing = false;
 }
 
-function Player(parentSound) {
+function Player(parentSound, parentStruct) {
     this.sound = parentSound; // of course, this.player.sound.buffer, etc, is available in Sound class but never used.
 
-    this.initialize();
+    this.scale = 65; // pixels per second
+
+    if (typeof(parentStruct) === 'undefined')
+        this.initialize(this.createPlayerWrapper()); //starting fresh
+    else this.initialize(parentStruct); //starting after finish record
+
     this.movePlayhead();
 
     var self = this;
@@ -256,14 +255,55 @@ function Player(parentSound) {
             self.sound.parent.play_onClick(new_offset_global);
         }, 50);
     });
+
+
 }
 
-Player.prototype.initialize = function() {
-    // to incorporate Handlebars
-    var scale = 1000;
+Player.prototype.createPlayerWrapper = function(offset) {
+        // Create player wrapper (including controls for play, pause, record, sound, etc)
+    var playerCont = document.createElement('div');
+    
+    if (typeof(offset) !== 'undefined') // because dual use function; this use is for Record
+        $(playerCont).css({'left': offset * this.scale});
+    else console.log("fresh row");
 
+    // create horizontal row for player to be arranged in.
+    var soundRow = document.createElement('div');
+    $(soundRow).addClass('soundRow').appendTo($('.daw'));
+    $(playerCont).addClass('playerCont').appendTo($(soundRow));
+
+
+    return {'playerCont': playerCont, 'soundRow': soundRow};
+}
+
+Player.prototype.initialize = function(parentStruct) {
+    /*CODE FOR SOUND THAT FITS PAGE*/
+    /*var scale = 1000;
+
+    // if not already set; i.e. after record, then...
+    this.playerCont = parentStruct.playerCont, this.soundRow = parentStruct.soundRow;
+    $(this.playerCont)
+        .width( (this.sound.buffer.duration / this.sound.parent.orig_totalDuration) * scale)
+        .css({
+                'left': (this.sound.offset / this.sound.parent.orig_totalDuration) * scale
+                //'top': playerCont_topoffset
+            })
+        .data('id', 'added_' + this.sound.addedOrder);
+    // IMPORTANT: This function is arranged to render from inside out.*/
+
+    /*CODE FOR SOUND THAT DOES NOT FIT PAGE*/
+    //var scale = 1000;
+
+    // if not already set; i.e. after record, then...
+    this.playerCont = parentStruct.playerCont, this.soundRow = parentStruct.soundRow;
+    $(this.playerCont)
+        .width( (this.sound.buffer.duration * this.scale))
+        .css({
+                'left': (this.sound.offset * this.scale)
+                //'top': playerCont_topoffset
+            })
+        .data('id', 'added_' + this.sound.addedOrder);
     // IMPORTANT: This function is arranged to render from inside out.
-
 
     // create element that contains the sound progress (more of a background)
     this.player = document.createElement('div');
@@ -289,17 +329,11 @@ Player.prototype.initialize = function() {
     $(this.playhead).addClass('playhead');
     $(this.player).append(this.playhead);
 
-    // kinda not inside->out here on...
 
-    // Create player wrapper (including controls for play, pause, record, sound, etc)
-    this.playerCont = document.createElement('div');
-    $(this.playerCont).addClass('playerCont')
-        .width( (this.sound.buffer.duration / this.sound.parent.orig_totalDuration) * scale)
-        .css({
-                'left': (this.sound.offset / this.sound.parent.orig_totalDuration) * scale
-                //'top': playerCont_topoffset
-            })
-        .data('id', 'added_' + this.sound.addedOrder);
+
+    // player wrapper created in prototype.createPlayerWrapper #####
+
+
 
     // play / pause and mute buttons.
     this.playToggle = document.createElement('div');
@@ -323,14 +357,6 @@ Player.prototype.initialize = function() {
             .appendTo($(this.recordBar));
 
     $(this.player).appendTo($(this.playerCont));
-
-    // create horizontal row for player to be arranged in.
-    this.soundRow = document.createElement('div');
-    $(this.soundRow).addClass('soundRow');
-    $(this.playerCont).appendTo($(this.soundRow));
-
-    $(this.soundRow).appendTo($('.daw'));
-    // playerCont_topoffset += playerCont_height + 15;
 
     // have yet to tidy up centering of all sound elements (after each add, adjust margins)
 }
@@ -365,6 +391,30 @@ Player.prototype.render = function(relative_offset) {
         _render();
 }
 
+Player.prototype.renderRecord = function() {
+    var self = this;
+    var parentStruct = this.createPlayerWrapper(this.sound.parent.recent_recPos);
+
+    var time_startRender = this.sound.parent.context.currentTime;
+    console.log(time_startRender);
+    var recProgress = document.createElement('div');
+    $(recProgress).addClass('player_sound')
+        .appendTo($(parentStruct.playerCont));
+
+    function _render() {
+        var soundProgress = (self.sound.parent.context.currentTime - time_startRender) * self.scale;
+        $(parentStruct.playerCont).width(soundProgress);
+        window.requestAnimationFrame(function() {
+            _render();
+        });
+
+    }
+
+    _render();
+
+    return parentStruct;
+}
+
 Player.prototype.resetWidth = function() {$(this.progress).width(0);}
 
 Player.prototype.handleClick = function(callback) {
@@ -390,7 +440,8 @@ Player.prototype.movePlayhead = function() { // and move Record Button
         $(recordButton).css({'left':event.offsetX - 9});
         if (self.sound.parent.rec_status) {// handle recording start position
             self.sound.parent.recent_recPos = (event.clientX - 9 - $(this).offset().left) / $(this).width() * self.sound.buffer.duration + self.sound.offset;
-            console.log(self.sound.parent.recent_recPos);
+            self.renderRecord();
+            self.sound.parent.rec_status = false;
         }
     });
 }
@@ -470,7 +521,7 @@ function init() {
                 var newBuffer = context.createBuffer( 2, buffers[0].length, context.sampleRate );
                 newBuffer.getChannelData(0).set(buffers[0]);
                 newBuffer.getChannelData(1).set(buffers[1]);
-                audioHandler.createSound.call(audioHandler, newBuffer);
+                audioHandler.addSound.call(audioHandler, newBuffer);
             });
             
             recorder.clear();
@@ -505,7 +556,7 @@ function init() {
                     context,
                     [{"url": url, "offset": 1}], 
                     function(soundList) {
-                        audioHandler.createSound.call(audioHandler, soundList[0]);
+                        audioHandler.addSound.call(audioHandler, soundList[0]);
                     }
                 );
             newSound_bufferloader.load();
