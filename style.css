@@ -104,6 +104,19 @@ div {
     text-align: left;
 }
 
+
+.recordProg {
+    height: 70px;
+    transition:height .2s;
+    width:100%;
+    background-color: red;
+    display: inline-block;
+    position: absolute;
+    z-index:5;
+    text-align: left;
+    cursor:pointer;
+}
+
 .recordBar {
     height: 70px;
     transition:height .2s;
@@ -136,7 +149,7 @@ div {
 not reliable; it is possible to divert hover from .player to .playhead, which counts as mouse exit
 because .playhead is on top of the player. Thus overPlayer overlays the playhead as a reliable source
 of x position.*/
-.overPlayer_sound {
+.overPlayer {
     height: 100%;
     width: 100%;
     background-color: black;
@@ -168,6 +181,18 @@ of x position.*/
     position:absolute;
     z-index: 2;
     bottom:3px;
+}
+
+/*identical to overSound*/
+.overRecord {
+    height: 100%;
+    width: 100%;
+    background-color: black;
+    position: absolute;
+    top: 0px;
+    opacity: 0;
+    display:block;
+    z-index:3;
 }
 
 .player_sound:hover .playhead {

@@ -85,17 +85,20 @@ function AudioHandler(soundList, context, clock) {
 
     this.rec_status;
     this.recent_recPos;
+    this.handoff; // aka parentStruct, this is a reference to a DOM element structure that can be built off of if it doesn't exist.
+        // bad code, however, if handoff == the previous record's.
 
     this.handleClick();
 }
 
-AudioHandler.prototype.addSound = function(sound, index) {
+AudioHandler.prototype.addSound = function(sound, index, parentStruct) {
     this.totalDuration += Number(sound.buffer.duration);
 
     if (sound.offset === null)// a sound coming from record will not have an offset inbuilt.
         sound.offset = this.recent_recPos;
 
-    var tempSound = new Sound(sound, this.numSounds++, this);
+    var tempSound = new Sound(sound, this.numSounds++, this, parentStruct); // parentStruct can be null, meaning sound doesn't come from record.
+
     
     this.soundList[index] = tempSound;
 
@@ -181,7 +184,7 @@ AudioHandler.prototype.handleClick = function() {
     // that of clicking on individual players has been moved to Player object initialization.
 }
 
-function Sound(sound, addedOrder, parent) {
+function Sound(sound, addedOrder, parent, parentStruct) {
     this.addedOrder = addedOrder;
     this.buffer = sound.buffer;
     this.url = sound.url;
@@ -195,7 +198,11 @@ function Sound(sound, addedOrder, parent) {
         - recent_pause
         - offset_global
      */
-    this.player = new Player(this);
+    this.player = new Player(this, parentStruct);
+    /*if (typeof(parentStruct) !== 'undefined')
+        this.player = new Player(this, parentStruct);
+    else
+        this.player = new Player(this);*/
 }
 
 Sound.prototype.play = function() {
@@ -243,6 +250,7 @@ function Player(parentSound, parentStruct) {
     else this.initialize(parentStruct); //starting after finish record
 
     this.movePlayhead();
+    this.moveRecordButton();
 
     var self = this;
     this.handleClick(function(new_offset_global) {
@@ -255,7 +263,6 @@ function Player(parentSound, parentStruct) {
             self.sound.parent.play_onClick(new_offset_global);
         }, 50);
     });
-
 
 }
 
@@ -271,7 +278,6 @@ Player.prototype.createPlayerWrapper = function(offset) {
     var soundRow = document.createElement('div');
     $(soundRow).addClass('soundRow').appendTo($('.daw'));
     $(playerCont).addClass('playerCont').appendTo($(soundRow));
-
 
     return {'playerCont': playerCont, 'soundRow': soundRow};
 }
@@ -321,7 +327,7 @@ Player.prototype.initialize = function(parentStruct) {
 
     // create overPlayer to track mouse movement for playhead.
     this.overPlayer = document.createElement('div');
-    $(this.overPlayer).addClass('overPlayer_sound');
+    $(this.overPlayer).addClass('overPlayer');
     $(this.player).append(this.overPlayer);
 
     // initialize playhead
@@ -349,7 +355,7 @@ Player.prototype.initialize = function(parentStruct) {
             .appendTo($(this.playerCont));
 
     this.overRecordbar = document.createElement('div');
-    $(this.overRecordbar).addClass('overPlayer_sound') // aka overRecord
+    $(this.overRecordbar).addClass('overRecord')
             .appendTo($(this.recordBar));
 
     this.recordButton = document.createElement('div');
@@ -394,25 +400,27 @@ Player.prototype.render = function(relative_offset) {
 Player.prototype.renderRecord = function() {
     var self = this;
     var parentStruct = this.createPlayerWrapper(this.sound.parent.recent_recPos);
-
     var time_startRender = this.sound.parent.context.currentTime;
     console.log(time_startRender);
     var recProgress = document.createElement('div');
-    $(recProgress).addClass('player_sound')
+    $(recProgress).addClass('recordProg')
         .appendTo($(parentStruct.playerCont));
 
     function _render() {
-        var soundProgress = (self.sound.parent.context.currentTime - time_startRender) * self.scale;
-        $(parentStruct.playerCont).width(soundProgress);
-        window.requestAnimationFrame(function() {
-            _render();
-        });
-
+        if (self.sound.parent.rec_status) {
+            var soundProgress = (self.sound.parent.context.currentTime - time_startRender) * self.scale;
+            $(parentStruct.playerCont).width(soundProgress);
+            window.requestAnimationFrame(function() {
+                _render();
+            });
+        }
+        else { // last call
+            $(recProgress).remove();
+            self.sound.parent.handoff = parentStruct;
+        }
     }
 
     _render();
-
-    return parentStruct;
 }
 
 Player.prototype.resetWidth = function() {$(this.progress).width(0);}
@@ -430,18 +438,28 @@ Player.prototype.handleClick = function(callback) {
 Player.prototype.movePlayhead = function() { // and move Record Button
     var self = this;
     var playhead = this.playhead;
-    var recordButton = this.recordButton;
 
     $(this.overPlayer).mousemove(function(event) {
         $(playhead).css({'left':event.offsetX});
     });
+}
+
+Player.prototype.moveRecordButton = function() {
+    var self = this;
+    var recordButton = this.recordButton;
+    var recordingStarted = false;
 
     $(this.overRecordbar).mousemove(function(event) {
-        $(recordButton).css({'left':event.offsetX - 9});
-        if (self.sound.parent.rec_status) {// handle recording start position
-            self.sound.parent.recent_recPos = (event.clientX - 9 - $(this).offset().left) / $(this).width() * self.sound.buffer.duration + self.sound.offset;
-            self.renderRecord();
-            self.sound.parent.rec_status = false;
+        if (!recordingStarted) {
+            $(recordButton).css({'left':event.offsetX - 9});
+            if (self.sound.parent.rec_status) {// handle recording start position
+                self.sound.parent.recent_recPos = (event.clientX - 9 - $(this).offset().left) / $(this).width() * self.sound.buffer.duration + self.sound.offset;
+                self.renderRecord();
+                recordingStarted = true;
+            }
+        }
+        else if (!self.sound.parent.rec_status) {// has been reset to false externally.
+            recordingStarted = false;
         }
     });
 }
@@ -502,7 +520,7 @@ function init() {
     }
 
     function listenRecord_start() {
-        $('.overPlayer_sound').click(function() {
+        $('.overRecord').click(function() {
             console.log('Recording...');
             recorder && recorder.record();
             audioHandler.pauseManager();
@@ -521,7 +539,12 @@ function init() {
                 var newBuffer = context.createBuffer( 2, buffers[0].length, context.sampleRate );
                 newBuffer.getChannelData(0).set(buffers[0]);
                 newBuffer.getChannelData(1).set(buffers[1]);
-                audioHandler.addSound.call(audioHandler, newBuffer);
+                audioHandler.addSound.call(audioHandler,
+                    {
+                        'buffer': newBuffer,
+                        'offset': audioHandler.recent_recPos
+                    },
+                    audioHandler.soundList.length, audioHandler.handoff);
             });
             
             recorder.clear();
